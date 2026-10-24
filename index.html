@@ -3,540 +3,851 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لعبة أسلوبي المدح والذم التفاعلية</title>
+    <title>اختبارات الأستاذ عبده حاتم التفاعلية | النحو العربي</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts (Cairo) -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            gold: '#fbbf24',
+                            darkGold: '#d97706',
+                            purple: '#4c1d95',
+                            indigo: '#312e81',
+                            neonGreen: '#10b981',
+                            neonRed: '#ef4444'
+                        }
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body {
-            font-family: 'Tajawal', sans-serif;
-            background-color: #f0fdf4;
+            font-family: 'Cairo', sans-serif;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            user-select: none;
         }
-        .card-shadow {
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        
+        .glow-box {
+            box-shadow: 0 0 25px rgba(251, 191, 36, 0.3);
         }
-        .option-btn {
-            transition: all 0.2s ease;
+        .glow-box-neon {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
         }
-        .option-btn:disabled {
-            cursor: not-allowed;
+        
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.8); }
         }
-        .option-correct {
-            background-color: #dcfce7 !important;
-            border-color: #16a34a !important;
-            color: #166534 !important;
+        .animate-glow {
+            animation: pulseGlow 2s infinite;
         }
-        .option-wrong {
-            background-color: #fee2e2 !important;
-            border-color: #dc2626 !important;
-            color: #991b1b !important;
+
+        .correct-card {
+            background-color: #065f46 !important;
+            border-color: #10b981 !important;
+            animation: bounce 0.5s ease;
         }
-        .option-dim {
-            opacity: 0.6;
+
+        .wrong-card {
+            background-color: #991b1b !important;
+            border-color: #ef4444 !important;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3730a3;
+            border-radius: 4px;
+        }
+
+        .option-disabled {
+            pointer-events: none;
+            opacity: 0.85;
+        }
+
+        .match-selected {
+            background-color: #b45309 !important;
+            border-color: #fbbf24 !important;
+            box-shadow: 0 0 15px rgba(251, 191, 36, 0.6);
+        }
+
+        .match-paired {
+            opacity: 0.45;
+            pointer-events: none;
+        }
+
+        /* Floating background decoration */
+        .float-bg {
+            position: fixed;
+            font-size: 120px;
+            opacity: 0.04;
+            color: #fbbf24;
+            z-index: 0;
+            pointer-events: none;
         }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="flex flex-col justify-between min-h-screen p-2 md:p-6 overflow-x-hidden">
 
-    <div id="game-container" class="w-full max-w-3xl bg-white rounded-2xl card-shadow p-6 md:p-8 border border-green-100">
-        <!-- Start Screen -->
-        <div id="start-screen" class="text-center py-8">
-            <h1 class="text-3xl md:text-4xl font-black text-green-800 mb-4">🌟 لعبة أسلوبي المدح والذم التفاعلية 🌟</h1>
-            <p class="text-gray-600 text-lg mb-8">اختبر معلوماتك وقواعدك النحوية في أسلوبي المدح والذم عبر 30 سؤالاً متنوعاً!</p>
+    <!-- Background decorations -->
+    <i class="fa-solid fa-book-quran float-bg" style="top: 10%; left: 5%;"></i>
+    <i class="fa-solid fa-feather float-bg" style="bottom: 10%; right: 5%;"></i>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 text-right bg-green-50 p-4 rounded-xl border border-green-200">
-                <div class="p-3 bg-white rounded-lg shadow-sm border-r-4 border-green-500">
-                    <span class="font-bold text-green-700 block">المرحلة الأولى</span>
-                    <span class="text-sm text-gray-600">10 أسئلة صح أو خطأ</span>
+    <!-- Header Section -->
+    <header class="w-full max-w-5xl mx-auto flex flex-wrap justify-between items-center p-4 bg-indigo-950/80 backdrop-blur-md rounded-2xl border border-amber-500/30 shadow-2xl mb-4 relative z-10">
+        <div class="flex items-center space-x-3 space-x-reverse">
+            <div class="w-12 h-12 bg-amber-500 text-indigo-950 rounded-xl flex items-center justify-center font-black text-2xl shadow-lg transform rotate-3">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div>
+                <h1 class="text-lg md:text-2xl font-black text-amber-400 tracking-wide">اختبارات الأستاذ عبده حاتم</h1>
+                <p class="text-xs text-indigo-200">للنحو العربي والتدريب التفاعلي</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4 space-x-reverse mt-2 md:mt-0">
+            <button id="soundToggleBtn" onclick="toggleSound()" class="px-3 py-2 bg-indigo-900/80 hover:bg-indigo-800 text-amber-400 rounded-lg border border-amber-500/30 transition flex items-center space-x-1 space-x-reverse">
+                <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                <span class="text-xs font-bold">الصوت</span>
+            </button>
+            
+            <div id="scorePanel" class="hidden items-center bg-indigo-900/90 px-4 py-2 rounded-xl border border-indigo-700/50 space-x-4 space-x-reverse">
+                <div class="text-center">
+                    <span class="block text-[10px] text-indigo-300 font-bold">النقاط</span>
+                    <span id="scoreDisplay" class="text-lg font-black text-amber-400">0</span>
                 </div>
-                <div class="p-3 bg-white rounded-lg shadow-sm border-r-4 border-blue-500">
-                    <span class="font-bold text-blue-700 block">المرحلة الثانية</span>
-                    <span class="text-sm text-gray-600">15 سؤال متعدد الخيارات</span>
-                </div>
-                <div class="p-3 bg-white rounded-lg shadow-sm border-r-4 border-purple-500">
-                    <span class="font-bold text-purple-700 block">المرحلة الثالثة</span>
-                    <span class="text-sm text-gray-600">5 أسئلة مصطلحات</span>
+                <div class="h-6 w-px bg-indigo-700"></div>
+                <div class="text-center">
+                    <span class="block text-[10px] text-indigo-300 font-bold">التقدم</span>
+                    <span id="progressDisplay" class="text-lg font-black text-emerald-400">0/0</span>
                 </div>
             </div>
+        </div>
+    </header>
 
-            <button onclick="startGame()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-10 rounded-xl text-xl transition-all transform hover:scale-105 shadow-lg">
-                ابدأ التحدي الآن 🚀
+    <!-- Main Game Container -->
+    <main class="w-full max-w-5xl mx-auto flex-grow flex flex-col justify-center relative z-10">
+
+        <!-- ===================== Welcome Screen ===================== -->
+        <div id="welcomeScreen" class="bg-indigo-950/70 backdrop-blur-md rounded-3xl p-6 md:p-10 border-2 border-amber-500/40 text-center glow-box my-auto">
+            <div class="w-24 h-24 bg-gradient-to-tr from-amber-500 to-yellow-300 rounded-full mx-auto flex items-center justify-center text-indigo-950 text-5xl mb-6 shadow-2xl animate-bounce">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <h2 class="text-2xl md:text-4xl font-extrabold text-amber-300 mb-3">أهلاً وسهلاً بك في صفحة الأستاذ عبده حاتم</h2>
+            <p class="text-indigo-200 text-sm md:text-base max-w-2xl mx-auto mb-4 leading-relaxed">
+                هذه الصفحة مخصصة لاختبار قدراتك في مادة النحو العربي، وتحديداً في درس <span class="text-amber-400 font-bold">النعت</span>.
+                صُممت هذه الأسئلة بعناية لقياس مدى فهمك للقواعد وتطبيقاتها بشكل تفاعلي وممتع.
+            </p>
+            <p class="text-amber-300 font-bold text-sm mb-8">هل أنت مستعد لإثبات مهاراتك النحوية؟ اضغط على الزر أدناه للدخول.</p>
+
+            <button onclick="showLessons()" class="px-10 py-4 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-indigo-950 text-xl font-black rounded-2xl shadow-xl hover:scale-105 transform transition duration-300 animate-glow">
+                <i class="fa-solid fa-door-open ml-2"></i> أنا مستعد... دعني أدخل
             </button>
         </div>
 
-        <!-- Quiz Screen -->
-        <div id="quiz-screen" class="hidden">
-            <!-- Header Info -->
-            <div class="flex flex-wrap justify-between items-center mb-6 pb-4 border-b border-gray-100 gap-2">
-                <div>
-                    <span id="section-badge" class="bg-green-100 text-green-800 text-xs font-bold px-3 py-1 rounded-full">المرحلة الأولى</span>
-                    <span id="question-number" class="text-gray-500 text-sm mr-2">السؤال 1 من 30</span>
-                </div>
-                <div class="flex items-center gap-4">
-                    <div class="text-amber-600 font-bold text-sm bg-amber-50 px-3 py-1 rounded-lg border border-amber-200">
-                        ⭐ النقاط: <span id="score">0</span>
+        <!-- ===================== Lessons Selection Screen ===================== -->
+        <div id="lessonsScreen" class="hidden bg-indigo-950/70 backdrop-blur-md rounded-3xl p-6 md:p-10 border-2 border-amber-500/40 text-center glow-box my-auto">
+            <h2 class="text-2xl md:text-3xl font-extrabold text-amber-300 mb-2">اختر الدرس الذي تريد اختباره</h2>
+            <p class="text-indigo-200 text-sm mb-8">كل درس يحتوي على مجموعة أسئلة تفاعلية شاملة.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                <!-- Lesson 1 Button -->
+                <button onclick="startLesson(1)" class="group bg-gradient-to-br from-indigo-900/80 to-indigo-950/80 hover:from-amber-900/60 hover:to-indigo-950 p-6 rounded-2xl border-2 border-indigo-700/60 hover:border-amber-500/60 transition-all duration-300 shadow-xl hover:scale-105">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-amber-500/20 rounded-2xl flex items-center justify-center text-amber-400 text-3xl border border-amber-500/40 group-hover:bg-amber-500/30 transition">
+                        <i class="fa-solid fa-book"></i>
                     </div>
+                    <h3 class="text-xl font-black text-amber-300 mb-2">الدرس الأول: النعت</h3>
+                    <p class="text-indigo-300 text-xs leading-relaxed">50 سؤالاً شاملاً في باب النعت الحقيقي والسببي، الجملة وشبه الجملة، والتطبيقات المتقدمة.</p>
+                    <span class="inline-block mt-4 px-4 py-1.5 bg-amber-500 text-indigo-950 text-xs font-black rounded-lg">ابدأ الاختبار</span>
+                </button>
+
+                <!-- Lesson 2 Button -->
+                <button onclick="startLesson(2)" class="group bg-gradient-to-br from-indigo-900/80 to-indigo-950/80 hover:from-emerald-900/60 hover:to-indigo-950 p-6 rounded-2xl border-2 border-indigo-700/60 hover:border-emerald-500/60 transition-all duration-300 shadow-xl hover:scale-105">
+                    <div class="w-16 h-16 mx-auto mb-4 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400 text-3xl border border-emerald-500/40 group-hover:bg-emerald-500/30 transition">
+                        <i class="fa-solid fa-pen-nib"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-emerald-300 mb-2">الدرس الثاني: التوكيد</h3>
+                    <p class="text-indigo-300 text-xs leading-relaxed">اختبار تفاعلي في التوكيد اللفظي والمعنوي، مع أمثلة تطبيقية وأسئلة متنوعة.</p>
+                    <span class="inline-block mt-4 px-4 py-1.5 bg-emerald-500 text-indigo-950 text-xs font-black rounded-lg">ابدأ الاختبار</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ===================== Question Screen ===================== -->
+        <div id="gameScreen" class="hidden bg-indigo-950/80 backdrop-blur-md rounded-3xl p-4 md:p-8 border border-amber-500/30 shadow-2xl relative">
+            
+            <div class="w-full bg-indigo-900/80 rounded-full h-3 mb-6 overflow-hidden border border-indigo-700">
+                <div id="progressBar" class="bg-gradient-to-r from-amber-500 to-emerald-400 h-full w-0 transition-all duration-300"></div>
+            </div>
+
+            <div class="flex justify-between items-center mb-4">
+                <span id="questionTypeBadge" class="bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/40">
+                    نوع السؤال
+                </span>
+                <span id="questionNumberText" class="text-xs text-indigo-300 font-bold">
+                    السؤال 1
+                </span>
+            </div>
+
+            <div class="bg-indigo-900/40 p-5 rounded-2xl border border-indigo-800/80 mb-6">
+                <h3 id="questionText" class="text-lg md:text-xl font-bold text-slate-100 leading-relaxed text-right">
+                    نص السؤال يظهر هنا...
+                </h3>
+            </div>
+
+            <div id="answersContainer" class="space-y-3 mb-6"></div>
+
+            <div id="matchingContainer" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="space-y-2" id="matchingKeys"></div>
+                <div class="space-y-2" id="matchingValues"></div>
+            </div>
+
+            <div id="feedbackBox" class="hidden p-4 rounded-2xl mb-4 border text-right transition duration-300">
+                <div class="flex items-center space-x-2 space-x-reverse font-bold text-lg mb-1" id="feedbackHeader"></div>
+                <p id="feedbackText" class="text-sm text-slate-200 leading-relaxed"></p>
+                <button id="nextBtn" onclick="nextQuestion()" class="mt-3 px-6 py-2 bg-amber-500 hover:bg-amber-400 text-indigo-950 font-extrabold rounded-xl text-sm transition">
+                    السؤال التالي <i class="fa-solid fa-arrow-left mr-1"></i>
+                </button>
+            </div>
+
+        </div>
+
+        <!-- ===================== Result Screen ===================== -->
+        <div id="resultScreen" class="hidden bg-indigo-950/80 backdrop-blur-md rounded-3xl p-6 md:p-10 border-2 border-amber-500/50 text-center glow-box my-auto">
+            <div id="resultBadge" class="w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl mb-6 shadow-2xl"></div>
+            
+            <h2 id="resultTitle" class="text-3xl font-black mb-2">نتيجة ممتازة!</h2>
+            <p id="resultSubtitle" class="text-indigo-200 text-sm mb-6">لقد أكملت جميع أسئلة الاختبار التفاعلي بنجاح.</p>
+
+            <div class="bg-indigo-900/50 p-6 rounded-2xl border border-indigo-700 max-w-md mx-auto mb-8 grid grid-cols-2 gap-4">
+                <div class="text-center border-l border-indigo-700/50">
+                    <span class="text-xs text-indigo-300 block mb-1">النتيجة النهائية</span>
+                    <span id="finalScore" class="text-3xl font-black text-amber-400">0 / 0</span>
+                </div>
+                <div class="text-center">
+                    <span class="text-xs text-indigo-300 block mb-1">النسبة المئوية</span>
+                    <span id="finalPercentage" class="text-3xl font-black text-emerald-400">0%</span>
                 </div>
             </div>
 
-            <!-- Progress Bar -->
-            <div class="w-full bg-gray-100 rounded-full h-2.5 mb-6">
-                <div id="progress-bar" class="bg-green-600 h-2.5 rounded-full transition-all duration-300" style="width: 0%"></div>
-            </div>
+            <div id="teacherNote" class="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl max-w-xl mx-auto mb-8 text-amber-200 text-sm font-semibold"></div>
 
-            <!-- Question Text -->
-            <div id="question-box" class="bg-gray-50 p-6 rounded-xl border border-gray-200 mb-6">
-                <h2 id="question-text" class="text-xl md:text-2xl font-bold text-gray-800 leading-relaxed text-center whitespace-pre-line">
-                    جاري تحميل السؤال...
-                </h2>
+            <div class="flex flex-wrap justify-center gap-3">
+                <button onclick="restartLesson()" class="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-indigo-950 font-black rounded-xl text-base transition shadow-lg">
+                    <i class="fa-solid fa-rotate-right ml-2"></i> إعادة الاختبار
+                </button>
+                <button onclick="goToLessons()" class="px-6 py-3 bg-indigo-800 hover:bg-indigo-700 text-amber-300 font-black rounded-xl text-base transition shadow-lg border border-amber-500/30">
+                    <i class="fa-solid fa-arrow-right ml-2"></i> العودة للدروس
+                </button>
             </div>
-
-            <!-- Options Container -->
-            <div id="options-container" class="grid grid-cols-1 gap-3 mb-6">
-                <!-- Dynamic Options -->
-            </div>
-
-            <!-- Feedback & Explanation Box -->
-            <div id="explanation-box" class="hidden p-4 rounded-xl mb-6 text-sm md:text-base border">
-                <div id="explanation-title" class="font-bold mb-1"></div>
-                <div id="explanation-text" class="text-gray-700"></div>
-            </div>
-
-            <!-- Next Button -->
-            <button id="next-btn" onclick="nextQuestion()" class="hidden w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition-all text-center">
-                السؤال التالي ⬅️
-            </button>
         </div>
 
-        <!-- Result Screen -->
-        <div id="result-screen" class="hidden text-center py-8">
-            <div id="result-icon" class="text-6xl mb-4">🏆</div>
-            <h2 class="text-3xl font-black text-gray-800 mb-2">أحسنت! أكملت الاختبار</h2>
-            <p id="result-message" class="text-gray-600 mb-6 text-lg"></p>
+    </main>
 
-            <div class="bg-green-50 border border-green-200 rounded-2xl p-6 mb-8 max-w-sm mx-auto">
-                <span class="text-gray-600 block mb-1">النتيجة النهائية</span>
-                <span id="final-score" class="text-4xl font-black text-green-700">0 / 30</span>
-                <span id="percentage" class="block text-sm font-bold text-gray-500 mt-2">0%</span>
-            </div>
+    <footer class="w-full max-w-5xl mx-auto text-center py-4 mt-4 text-xs text-indigo-300/60 border-t border-indigo-900/50 relative z-10">
+        جميع الحقوق محفوظة © صفحة الأستاذ <span class="text-amber-400/80 font-bold">عبده حاتم</span> للنحو العربي
+    </footer>
 
-            <button onclick="restartGame()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-md">
-                إعادة التحدي 🔄
-            </button>
-        </div>
-    </div>
-
+    <!-- ============================================================
+         نظام الصوت
+    ============================================================ -->
     <script>
-        const questions = [
-            // --- المرحلة الأولى: صح أو خطأ (10 أسئلة) ---
-            {
-                type: 'tf',
-                section: 'المرحلة الأولى: صح أم خطأ',
-                question: 'يتكون أسلوب المدح والذم من أربعة أركان أساسية.',
-                options: ['صح', 'خطأ'],
-                answer: 'خطأ',
-                explanation: 'خطأ: يتكون أسلوب المدح أو الذم من ثلاثة أركان هي: فعل المدح أو الذم، وفاعله، والمخصوص بالمدح أو الذم.'
-            },
-            {
-                type: 'tf',
-                section: 'المرحلة الأولى: صح أم خطأ',
-                question: 'في جملة (نِعْمَ عَمَلًا الصَّلَاةُ)، الفاعل ضمير مستترُ تقديره هو، مُفسَّر بتمييز نكرة.',
-                options: ['صح', 'خطأ'],
-                answer: 'صح',
-                explanation: 'صح: عند إتيان اسم نكرة منصوب (تمييز) بعد (نعم) أو (بئس)، يكون الفاعل ضميراً مستتراً.'
-            },
-            {
-                type: 'tf',
-                section: 'المرحلة الأولى: صح أم خطأ',
-                question: 'يجوز تقديم المخصوص بالمدح على الفعل والفاعل في أسلوب (حبّذا).',
-                options: ['صح', 'خطأ'],
-                answer: 'خطأ',
-                explanation: 'خطأ: لا يجوز تقديم المخصوص بالمدح أو الذم مع (حبذا) و(لا حبذا)، بل يمتنع تقديمه.'
-            },
-            {
-                type: 'tf',
-                section: 'المرحلة الأولى: صح أم خطأ',
-                question: 'فاعل الفعل (حَبَّ) في (حبّذا) هو اسم الإشارة (ذا).',
-                options: ['صح', 'خطأ'],
-                answer: 'صح',
-                explanation: 'صح: اسم الإشارة (ذا) المتصل بـ (حبّ) هو الفاعل دائماً.'
-            },
-            {
-                type: 'tf',
-                section: 'المرحلة الأولى: صح أم خطأ',
-                question: 'يجوز حذف المخصوص بالمدح أو الذم مع الفعلين (نِعْمَ) و(بِئْسَ) إذا دَلَّ عليه دليل.',
-                options: ['صح', 'خطأ'],
-                answer: 'صح',
-                explanation: 'صح: كما في قوله تعالى: ﴿نِعْمَ أَجْرُ الْعَامِلِينَ﴾ أي (الجنة).'
-            },
-            {
-                type: 'tf',
-                section: 'المرحلة الأولى: صح أم خطأ',
-                question: 'إذا تقدّم المخصوص بالمدح على (نِعْمَ)، يجوز إعرابه خبراً لمبتدأ محذوف.',
-                options: ['صح', 'خطأ'],
-                answer: 'خطأ',
-                explanation: 'خطأ: إذا تقدم المخصوص (مثل: الصادق نعم الرجل)، لا يعرب إلا مبتدأ مرفوعاً والجملة بعده خبره.'
-            },
-            {
-                type: 'tf',
-                section: 'المرحلة الأولى: صح أم خطأ',
-                question: 'كلمة (لا) في (لا حَبَّذَا) هي حرف نفي لا محل له من الإعراب.',
-                options: ['صح', 'خطأ'],
-                answer: 'صح',
-                explanation: 'صح: (لا) حرف نفي، و(حبَّ) فعل ماض، و(ذا) فاعل.'
-            },
-            {
-                type: 'tf',
-                section: 'المرحلة الأولى: صح أم خطأ',
-                question: 'يجوز حذف المخصوص بالذم مع (لا حبّذا).',
-                options: ['صح', 'خطأ'],
-                answer: 'خطأ',
-                explanation: 'خطأ: لا يجوز حذف المخصوص بالمدح أو الذم مع (حبذا) و(لا حبذا).'
-            },
-            {
-                type: 'tf',
-                section: 'المرحلة الأولى: صح أم خطأ',
-                question: 'الفاعل في جملة (بِئْسَ مَنْ تُصَاحِبُهُ العَاصِي) هو الاسم الموصول (مَنْ).',
-                options: ['صح', 'خطأ'],
-                answer: 'صح',
-                explanation: 'صح: الأسماء الموصولة (من، ما) تعتبر إحدى صور فاعل (نعم) و(بئس).'
-            },
-            {
-                type: 'tf',
-                section: 'المرحلة الأولى: صح أم خطأ',
-                question: 'أفعال المدح والذم (نِعْمَ، بِئْسَ) هي أفعال متصرفة تأتي في الماضي والمضارع والأمر.',
-                options: ['صح', 'خطأ'],
-                answer: 'خطأ',
-                explanation: 'خطأ: (نعم) و(بئس) أفعال ماضية جامدة لا تتصرف.'
-            },
+        let soundEnabled = true;
+        let audioCtx = null;
 
-            // --- المرحلة الثانية: اختيار من متعدد (15 سؤالاً) ---
-            {
-                type: 'mcq',
-                section: 'المرحلة الثانية: اختيار من متعدد',
-                question: 'ما نوع الفاعل في جملة: (نِعْمَ مَنْهَجُ النَّجَاةِ القُرْآنُ)؟',
-                options: ['اسم معرّف بـ (أل)', 'مضاف إلى ما فيه (أل)', 'اسم موصول', 'ضمير مستتر'],
-                answer: 'مضاف إلى ما فيه (أل)',
-                explanation: 'الفاعل هو (منهجُ) وهو مضاف إلى كلمة (النجاة) المعرفة بـ (أل).'
-            },
-            {
-                type: 'mcq',
-                section: 'المرحلة الثانية: اختيار من متعدد',
-                question: 'في جملة (نِعْمَ الرَّجُلُ الصَّادِقُ)، يُعرب المخصوص بالمدح (الصَّادِقُ) عند تأخره:',
-                options: [
-                    'مبتدأ مؤخر فقط',
-                    'خبراً لمبتدأ محذوف فقط',
-                    'مبتدأ مؤخر أو خبراً لمبتدأ محذوف',
-                    'فاعلاً للفعل نعم'
-                ],
-                answer: 'مبتدأ مؤخر أو خبراً لمبتدأ محذوف',
-                explanation: 'يجوز فيه وجهان: مبتدأ مؤخر والجملة قبله خبر تقدم، أو خبر لمبتدأ محذوف تقديره (هو).'
-            },
-            {
-                type: 'mcq',
-                section: 'المرحلة الثانية: اختيار من متعدد',
-                question: 'ما نوع فاعل (نِعْمَ) في قوله تعالى: ﴿نِعْمَ مَا تَعْمَلُهُ الإِنْفَاقُ﴾؟',
-                options: ['ضمير مستتر', 'اسم موصول (ما)', 'اسم معرّف بـ (أل)', 'اسم إشارة'],
-                answer: 'اسم موصول (ما)',
-                explanation: 'الفاعل هنا هو الاسم الموصول (ما).'
-            },
-            {
-                type: 'mcq',
-                section: 'المرحلة الثانية: اختيار من متعدد',
-                question: 'ما التقدير الصحيح للمخصوص المحذوف في قوله تعالى: ﴿فَبِئْسَ الْمِهَادُ﴾؟',
-                options: ['الجنة', 'جهنم', 'الفسوق', 'الكذب'],
-                answer: 'جهنم',
-                explanation: 'الآية تتحدث عن جهنم، فالتقدير: (فبئس المهاد جهنم).'
-            },
-            {
-                type: 'mcq',
-                section: 'المرحلة الثانية: اختيار من متعدد',
-                question: 'كم عدد أنواع فاعل أسلوبي المدح والذم الواردة في الخلاصة؟',
-                options: ['ثلاثة أنواع', 'أربعة أنواع', 'خمسة أنواع', 'ستة أنواع'],
-                answer: 'خمسة أنواع',
-                explanation: 'أنواع الفاعل خمسة: المعرف بـ (أل)، المضاف لما فيه (أل)، الضمير المستتر، (من/ما) الموصولتان، واسم الإشارة (ذا).'
-            },
-            {
-                type: 'mcq',
-                section: 'المرحلة الثانية: اختيار من متعدد',
-                question: 'أي الجمل التالية تتضمن فاعلاً معرّفاً بـ (أل)؟',
-                options: ['نِعْمَ عَمَلًا الصَّلَاةُ', 'بِئْسَ النَّاسُ الْمُتَكَبِّرُونَ', 'حَبَّذَا الصِّدْقُ', 'بِئْسَ خُلُقُ الرَّجُلِ الكَذِبُ'],
-                answer: 'بِئْسَ النَّاسُ الْمُتَكَبِّرُونَ',
-                explanation: 'الفاعل هو (النَّاسُ) وهو معرف بـ (أل).'
-            },
-            {
-                type: 'mcq',
-                section: 'المرحلة الثانية: اختيار من متعدد',
-                question: 'في جملة (بِئْسَ خُلُقًا الكَذِبُ)، تُعرب كلمة (خُلُقًا):',
-                options: ['فاعلاً مرفوعاً', 'مخصوصاً بالذم', 'تمييزاً منصوباً', 'خبراً مقدمًا'],
-                answer: 'تمييزاً منصوباً',
-                explanation: 'الاسم النكرة المنصوب بعد نعم وبئس يُعرب تمييزاً، والفاعل ضمير مستتر.'
-            },
-            {
-                type: 'mcq',
-                section: 'المرحلة الثانية: اختيار من متعدد',
-                question: 'عند تقديم المخصوص على الفعل مثل: (الصَّادِقُ نِعْمَ الرَّجُلُ)، يُعرب (الصَّادِقُ):',
-                options: ['خبر للمبتدأ محذوف', 'مبتدأ مرفوع والجملة بعده خبره', 'فاعل لـ نعم', 'مفعول به مقدم'],
-                answer: 'مبتدأ مرفوع والجملة بعده خبره',
-                explanation: 'عند تقديم المخصوص بـ (نعم/بئس) لا يجوز فيه إلا وجه واحد: مبتدأ خبره الجملة الفعلية بعده.'
-            },
-            {
-                type: 'mcq',
-                section: 'المرحلة الثانية: اختيار من متعدد',
-                question: 'أي التراكيب التالية يعتبر غير صحيح لغوياً ونحوياً؟',
-                options: ['الصِّدْقُ حَبَّذَا', 'حَبَّذَا الصِّدْقُ', 'الصَّادِقُ نِعْمَ الرَّجُلُ', 'نِعْمَ الرَّجُلُ الصَّادِقُ'],
-                answer: 'الصِّدْقُ حَبَّذَا',
-                explanation: 'لا يجوز تقديم المخصوص بالمدح على (حبذا).'
-            },
-            {
-                type: 'mcq',
-                section: 'المرحلة الثانية: اختيار من متعدد',
-                question: 'إعراب كلمة (ذا) في جملة (لَا حَبَّذَا الكَسَلُ) هو:',
-                options: ['اسم موصول في محل رفع فاعل', 'اسم إشارة مبني في محل رفع فاعل', 'مبتدأ مؤخر مرفوع', 'خبر محذوف'],
-                answer: 'اسم إشارة مبني في محل رفع فاعل',
-                explanation: '(ذا) اسم إشارة مبني في محل رفع فاعل للفعل (حبَّ).'
-            },
-            {
-                type: 'mcq',
-                section: 'المرحلة الثانية: اختيار من متعدد',
-                question: 'من الأفعال التي تُستخدم لإنشاء أسلوب الذم في النص المرفق:',
-                options: ['نِعْمَ وَ حَبَّذَا', 'بِئْسَ وَ لَا حَبَّذَا', 'بِئْسَ وَ نِعْمَ', 'حَبَّذَا وَ لَا حَبَّذَا'],
-                answer: 'بِئْسَ وَ لَا حَبَّذَا',
-                explanation: '(بئس) و (لا حبذا) هما الفعلان المخصصان للذم.'
-            },
-            {
-                type: 'mcq',
-                section: 'المرحلة الثانية: اختيار من متعدد',
-                question: 'ما حكم تقديم المخصوص بالمدح أو الذم في (نِعْمَ) و (بِئْسَ)؟',
-                options: ['ممتنع', 'واجب', 'جائز', 'مكروه'],
-                answer: 'جائز',
-                explanation: 'يجوز تقديم المخصوص بـ (نعم) و(بئس) مثل: (الصدق نعم الرجل) أو تأخيره مثل: (نعم الرجل الصدق).'
-            },
-            {
-                type: 'mcq',
-                section: 'المرحلة الثانية: اختيار من متعدد',
-                question: 'ما حكم حذف المخصوص بالمدح أو الذم مع (حَبَّذَا) و (لَا حَبَّذَا)؟',
-                options: ['جائز', 'غير جائز (ممتنع)', 'واجب', 'مستحب'],
-                answer: 'غير جائز (ممتنع)',
-                explanation: 'ينص الحكم على: عدم جواز حذف المخصوص بالمدح أو الذم لفعلي (حبَّ، لا حبَّ).'
-            },
-            {
-                type: 'mcq',
-                section: 'المرحلة الثانية: اختيار من متعدد',
-                question: 'ما إعراب كلمة (نصرة) في جملة: (نعم عملًا نصرةُ المسلمين)؟',
-                options: ['مبتدأ مؤخر مرفوع (أو خبر لمبتدأ محذوف)', 'تمييز منصوب', 'فاعل مرفوع بالضمة', 'مضاف إليه مجرور'],
-                answer: 'مبتدأ مؤخر مرفوع (أو خبر لمبتدأ محذوف)',
-                explanation: '(نصرة) هي المخصوص بالمدح، وتُعرب مبتدأ مؤخر أو خبراً لمبتدأ محذوف.'
-            },
-            {
-                type: 'mcq',
-                section: 'المرحلة الثانية: اختيار من متعدد',
-                question: 'في جملة (بِئْسَ مَنْ تُصَاحِبُهُ العَاصِي)، المخصوص بالذم هو:',
-                options: ['بِئْسَ', 'مَنْ', 'تُصَاحِبُهُ', 'العَاصِي'],
-                answer: 'العَاصِي',
-                explanation: 'الصفة أو الشخص المخصوص بالذم هنا هو (العاصي).'
-            },
-
-            // --- المرحلة الثالثة: ضع المصطلح المناسب (5 أسئلة) ---
-            {
-                type: 'fitb',
-                section: 'المرحلة الثالثة: ضع المصطلح المناسب',
-                question: 'أكمل الجملة بالمصطلح النحوي الصحيح:\n"يمثل أسلوباً نحوياً يتكوّن من ثلاثة أركان هي: فعل المدح أو الذم، وفاعله، والمخصوص..." هو تعريف لـ (........).',
-                options: ['أسلوب الشرط', 'أسلوبي المدح والذم', 'أسلوب التعجب', 'أسلوب النداء'],
-                answer: 'أسلوبي المدح والذم',
-                explanation: 'هذا هو التعريف النصي الوارد في الخلاصة لأسلوبي المدح والذم.'
-            },
-            {
-                type: 'fitb',
-                section: 'المرحلة الثالثة: ضع المصطلح المناسب',
-                question: 'ضع المصطلح الصحيح مكان الأقواس:\nفي جملة (حبَّذا الصِّدْقُ)، تُسمى كلمة (الصِّدْقُ) بـ (........).',
-                options: ['فاعل المدح', 'فعل المدح', 'المخصوص بالمدح', 'التمييز'],
-                answer: 'المخصوص بالمدح',
-                explanation: '(الصدق) هي الركن الثالث وتسمى المخصوص بالمدح.'
-            },
-            {
-                type: 'fitb',
-                section: 'المرحلة الثالثة: ضع المصطلح المناسب',
-                question: 'اختر المصطلح الوظيفي الصحيح للكلمة المحددة:\nفي جملة (نِعْمَ عَمَلًا الصَّلَاةُ)، الكلمة المنصوبة (عَمَلًا) تعرب (........) وهي تُفسّر الضمير المستتر.',
-                options: ['تمييزاً', 'مفعولاً به', 'حالاً', 'خبراً'],
-                answer: 'تمييزاً',
-                explanation: 'الاسم النكرة المنصوب المفسر للضمير المستتر بعد نعم وبئس يعرب تمييزاً.'
-            },
-            {
-                type: 'fitb',
-                section: 'المرحلة الثالثة: ضع المصطلح المناسب',
-                question: 'ضع الوصف والنوع المناسب لـ (ذا) في (لا حبذا الكسل):\nنوع الفاعل في (حبذا ولا حبذا) هو دائماً (........).',
-                options: ['اسم الموصول', 'اسم الإشارة', 'الاسم المعرف بـ أل', 'الضمير المستتر'],
-                answer: 'اسم الإشارة',
-                explanation: 'فاعل (حب) في (حبذا ولا حبذا) هو اسم الإشارة (ذا).'
-            },
-            {
-                type: 'fitb',
-                section: 'المرحلة الثالثة: ضع المصطلح المناسب',
-                question: 'اختر الحكم النحوي المناسب:\nحكم تقدم المخصوص بالمدح على الفعل والفاعل مع (حبذا) هو (........).',
-                options: ['جائز', 'عدم الجواز (ممتنع)', 'مستحب', 'واجب'],
-                answer: 'عدم الجواز (ممتنع)',
-                explanation: 'ينص الحكم الرابع على: عدم جواز تقديم المخصوص بالمدح أو الذم لفعلي (حبَّ، لا حبَّ).'
+        function getAudioCtx() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioCtx();
+
+                if (type === 'correct') {
+                    // نغمة فرح صاعدة (دو - مي - صول)
+                    const now = ctx.currentTime;
+                    [523.25, 659.25, 783.99].forEach((freq, i) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.type = 'sine';
+                        osc.frequency.value = freq;
+                        gain.gain.setValueAtTime(0.001, now + i * 0.08);
+                        gain.gain.exponentialRampToValueAtTime(0.2, now + i * 0.08 + 0.02);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.3);
+                        osc.start(now + i * 0.08);
+                        osc.stop(now + i * 0.08 + 0.35);
+                    });
+                } else if (type === 'wrong') {
+                    // نغمة حزينة هابطة (لا - فا منخفض - دو)
+                    const now = ctx.currentTime;
+                    const notes = [
+                        { freq: 349.23, time: 0 },
+                        { freq: 311.13, time: 0.18 },
+                        { freq: 261.63, time: 0.36 }
+                    ];
+                    notes.forEach(n => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.type = 'triangle';
+                        osc.frequency.value = n.freq;
+                        gain.gain.setValueAtTime(0.001, now + n.time);
+                        gain.gain.exponentialRampToValueAtTime(0.18, now + n.time + 0.03);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + n.time + 0.4);
+                        osc.start(now + n.time);
+                        osc.stop(now + n.time + 0.45);
+                    });
+                    // طبقة سفلية حزينة
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(ctx.destination);
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(174.61, now);
+                    osc2.frequency.exponentialRampToValueAtTime(130.81, now + 0.6);
+                    gain2.gain.setValueAtTime(0.12, now);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+                    osc2.start(now);
+                    osc2.stop(now + 0.75);
+                } else if (type === 'click') {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(500, ctx.currentTime);
+                    gain.gain.setValueAtTime(0.06, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+                    osc.start();
+                    osc.stop(ctx.currentTime + 0.06);
+                } else if (type === 'win') {
+                    const now = ctx.currentTime;
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, index) => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.type = 'sine';
+                        osc.frequency.value = freq;
+                        gain.gain.setValueAtTime(0.001, now + index * 0.13);
+                        gain.gain.exponentialRampToValueAtTime(0.2, now + index * 0.13 + 0.02);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.13 + 0.5);
+                        osc.start(now + index * 0.13);
+                        osc.stop(now + index * 0.13 + 0.55);
+                    });
+                } else if (type === 'sad') {
+                    // لحن حزين طويل للنهاية السيئة
+                    const now = ctx.currentTime;
+                    const melody = [
+                        { freq: 392.00, time: 0.0 },
+                        { freq: 349.23, time: 0.25 },
+                        { freq: 311.13, time: 0.50 },
+                        { freq: 261.63, time: 0.75 }
+                    ];
+                    melody.forEach(n => {
+                        const osc = ctx.createOscillator();
+                        const gain = ctx.createGain();
+                        osc.connect(gain);
+                        gain.connect(ctx.destination);
+                        osc.type = 'sine';
+                        osc.frequency.value = n.freq;
+                        gain.gain.setValueAtTime(0.001, now + n.time);
+                        gain.gain.exponentialRampToValueAtTime(0.18, now + n.time + 0.03);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + n.time + 0.5);
+                        osc.start(now + n.time);
+                        osc.stop(now + n.time + 0.55);
+                    });
+                }
+            } catch (e) {
+                console.warn('Audio error', e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('soundIcon');
+            icon.className = soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+        }
+    </script>
+
+    <!-- ============================================================
+         قاعدة بيانات الأسئلة - الدرسان
+    ============================================================ -->
+    <script>
+        // =====================================================
+        // الدرس الأول: النعت (50 سؤالاً)
+        // =====================================================
+        const lesson1Questions = [
+            // ---- 15 صح/خطأ ----
+            { type: 'tf', category: 'صح أم خطأ', question: 'النعت تابع يتبع متبوعه (المنعوت) في إعرابه رفعاً ونصباً وجراً.', options: ['صح', 'خطأ'], correct: 0, explanation: 'صحيح؛ النعت من التوابع الأربعة ويتبع المنعوت في الإعراب رفعاً ونصباً وجراً.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'يأتي النعت دائماً ركناً أساسياً في الجملة ولا يمكن الاستغناء عنه.', options: ['صح', 'خطأ'], correct: 1, explanation: 'خطأ؛ النعت فضلة يأتي بعد تمام الكلام ويمكن الاستغناء عنه.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'يشترط في النعت الجملة أن يكون المنعوت قبلها نكرة.', options: ['صح', 'خطأ'], correct: 0, explanation: 'صحيح؛ القاعدة: الجمل وأشباه الجمل بعد النكرات صفات وبعد المعارف أحوال.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'يطابق النعت الحقيقي المفرد منعوته في أربعة أوجه من أصل عشرة.', options: ['صح', 'خطأ'], correct: 0, explanation: 'صحيح؛ يطابقه في واحد من الإعراب، وواحد من التذكير/التأنيث، وواحد من العدد، وواحد من التعريف/التنكير.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'النعت السببي يتبع ما بعده في الإعراب ويصف ما قبله.', options: ['صح', 'خطأ'], correct: 1, explanation: 'خطأ؛ النعت السببي يتبع ما قبله إعراباً ويصف ما بعده تذكيراً وتأنيثاً.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'النعت السببي يلزم حالة الإفراد غالباً ولا يُثنى ولا يُجمع.', options: ['صح', 'خطأ'], correct: 0, explanation: 'صحيح؛ النعت السببي يلزم الإفراد دائماً كالفعل.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'يجوز أن تتعدد النعوت لمنعوت واحد فيكون بعضها مفرداً وبعضها جملة.', options: ['صح', 'خطأ'], correct: 0, explanation: 'صحيح؛ نحو: أصبح للتصنيع دورٌ بارزٌ حيويٌ يدعم الاقتصاد.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'شبه الجملة إذا وقع نعتاً يشترط أن يشتمل على ضمير يربطه بالمنعوت.', options: ['صح', 'خطأ'], correct: 1, explanation: 'خطأ؛ شبه الجملة هو الأصل ولا يرتبط بضمير، بخلاف جملة النعت.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'في جملة (محمَّدٌ أخلاقُه حسنةٌ)، جملة (أخلاقه حسنة) نعت للمبتدأ.', options: ['صح', 'خطأ'], correct: 1, explanation: 'خطأ؛ الجملة خبر المبتدأ لعدم وجود منعوت نكرة سابق بركنيه.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'إذا سُبقت جملة الوصف بـ (واو) تصبح جملة حالية وليست نعتية.', options: ['صح', 'خطأ'], correct: 0, explanation: 'صحيح؛ مثل: حملت شهيداً وثيابه مدرجة بالدماء.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'اسم العلم يأتي نعتاً ولا يأتي منعوتاً.', options: ['صح', 'خطأ'], correct: 1, explanation: 'خطأ؛ اسم العلم يأتي منعوتاً نحو: محمدٌ الكريمُ رجلٌ عظيم.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'النعت الجملة لا محل له من الإعراب، ويُعرب جملة في محل (رفع/نصب/جر) نعت.', options: ['صح', 'خطأ'], correct: 0, explanation: 'صحيح؛ جملة النعت لا محل لها من الإعراب ويُعرب محلها حسب موقع المنعوت.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'قد يأتي النعت سببياً لغير ما قبله في الإعراب.', options: ['صح', 'خطأ'], correct: 1, explanation: 'خطأ؛ النعت السببي يتبع ما قبله في الإعراب دائماً.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'إذا كان المنعوت جمعاً غير عاقل، يجوز في النعت أن يُفرد وأن يُجمع.', options: ['صح', 'خطأ'], correct: 0, explanation: 'صحيح؛ نحو: أشجارٌ باسقةٌ أو أشجارٌ باسقاتٌ، والأفضل الإفراد.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'النعت المقطوع عن المنعوت يُعرب حسب موقعه في الجملة، لا حسب إعراب المنعوت.', options: ['صح', 'خطأ'], correct: 0, explanation: 'صحيح؛ يُعرب حسب موقعه الجديد مع تقدير أعني أو أمدح.' },
+
+            // ---- 20 اختيار متعدد ----
+            { type: 'mcq', category: 'اختيار متعدد', question: 'نحو: (رأيتُ طالباً مجتهداً). إعراب (مجتهداً):', options: ['نعت منصوب', 'حال منصوب', 'خبر منصوب', 'مفعول به ثانٍ'], correct: 0, explanation: 'نعت منصوب لـ(طالباً)، نعت حقيقي يطابقه في النصب والإفراد والتذكير والتنكير.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'نحو: (هذا كتابٌ مفيدٌ). نوع النعت (مفيدٌ):', options: ['نعت حقيقي', 'نعت سببي', 'نعت جملة', 'نعت شبه جملة'], correct: 0, explanation: 'نعت حقيقي مفرد يطابق منعوته في الرفع والتذكير والإفراد والتنكير.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'نحو: (جاء الطالبُ المجتهدُ). إعراب (المجتهدُ):', options: ['نعت مرفوع', 'خبر مرفوع', 'فاعل مرفوع', 'بدل مرفوع'], correct: 0, explanation: 'نعت مرفوع بالضمة يتبع المنعوت في الرفع والتعريف والتذكير والإفراد.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'أيُّ الجمل التالية تحتوي على نعت سببي؟', options: ['رأيتُ رجلاً كريماً', 'جاء الطالبُ المجتهدُ أبوه', 'هذا كتابٌ جديدٌ', 'مررتُ بحديقةٍ جميلةٍ'], correct: 1, explanation: '(المجتهدُ) نعت سببي للمنعوت، و(أبوه) فاعل سببي يطابقه النعت في التذكير.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'نحو: (مررتُ بحديقةٍ جميلةٍ). علامة إعراب (جميلةٍ):', options: ['الضمة', 'الفتحة', 'الكسرة', 'السكون'], correct: 2, explanation: 'نعت مجرور بالكسرة الظاهرة تبعاً للمنعوت.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'نحو: (رأيتُ طالبين مجتهدين). إعراب (مجتهدين):', options: ['نعت منصوب بالياء', 'نعت مرفوع بالواو', 'حال منصوب بالياء', 'مفعول به ثانٍ'], correct: 0, explanation: 'نعت منصوب بالياء لأنه مثنى، يتبع المنعوت في النصب والتثنية.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'نحو: (جاء المعلمان الفاضلان). إعراب (الفاضلان):', options: ['نعت مرفوع بالألف', 'خبر مرفوع بالألف', 'فاعل مرفوع بالألف', 'بدل مرفوع بالألف'], correct: 0, explanation: 'نعت مرفوع بالألف لأنه مثنى، يتبع المنعوت في الرفع والتثنية.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'أيُّ الجمل تحتوي على نعت جملة اسمية؟', options: ['رأيتُ رجلاً يحمل حقيبة', 'هذا كتابٌ قيمتُه عالية', 'جاء الطالبُ المجتهدُ', 'مررتُ بحديقةٍ في وسط المدينة'], correct: 1, explanation: 'جملة (قيمتُه عالية) في محل رفع نعت لـ(كتابٌ) لأن المنعوت نكرة.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'نحو: (رأيتُ رجلاً يحمل حقيبة). إعراب جملة (يحمل حقيبة):', options: ['جملة فعلية في محل نصب نعت', 'جملة فعلية في محل نصب حال', 'جملة فعلية لا محل لها', 'جملة فعلية في محل رفع خبر'], correct: 0, explanation: 'جملة فعلية في محل نصب نعت لـ(رجلاً) لأن المنعوت نكرة، والرابط ضمير مستتر تقديره هو.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'نحو: (مررتُ بحديقةٍ في وسط المدينة). إعراب شبه الجملة:', options: ['نعت مجرور', 'حال منصوب', 'خبر مجرور', 'مفعول به'], correct: 0, explanation: 'جار ومجرور في محل جر نعت لـ(حديقةٍ) لأن المنعوت نكرة.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'النعت الذي يصف ما بعده ويتبع ما قبله في الإعراب هو:', options: ['النعت الحقيقي', 'النعت السببي', 'النعت الجملة', 'النعت المقطوع'], correct: 1, explanation: 'النعت السببي يتبع ما قبله إعراباً ويصف ما بعده تذكيراً وتأنيثاً.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'في: (جاءت الفتاةُ المؤدبةُ أخلاقُها)، إعراب (المؤدبةُ):', options: ['نعت مرفوع', 'نعت سببي مرفوع', 'حال مرفوع', 'خبر مرفوع'], correct: 1, explanation: 'نعت سببي مرفوع يتبع المنعوت في الرفع والتأنيث، ويصف أخلاقها في التأنيث.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'أيُّ الجمل تحتوي على نعت مقطوع؟', options: ['مررتُ برجلٍ كريمٍ', 'مررتُ برجلٍ كريمٌ', 'رأيتُ رجلاً كريماً', 'هذا رجلٌ كريمٌ'], correct: 1, explanation: '(كريمٌ) نعت مقطوع رُفع على القطع (أعني كريمٌ).' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'نحو: (الطلابُ المجتهدون ناجحون). إعراب (المجتهدون):', options: ['نعت مرفوع بالواو', 'خبر مرفوع بالواو', 'فاعل مرفوع بالواو', 'بدل مرفوع بالواو'], correct: 0, explanation: 'نعت مرفوع بالواو لأنه جمع مذكر سالم.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'في: (رأيتُ الطالباتِ المجتهداتِ)، إعراب (المجتهداتِ):', options: ['نعت منصوب بالكسرة', 'نعت مجرور بالكسرة', 'حال منصوب بالكسرة', 'مفعول به منصوب بالكسرة'], correct: 0, explanation: 'نعت منصوب بالكسرة نيابة عن الفتحة لأنه جمع مؤنث سالم.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'النعت الجملة بعد النكرة يكون:', options: ['في محل رفع فقط', 'في محل نصب فقط', 'في محل جر فقط', 'حسب موقع المنعوت'], correct: 3, explanation: 'جملة النعت تُعرب في محل (رفع/نصب/جر) نعت حسب موقع المنعوت.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'في: (أعجبتني حديقةٌ أزهارُها متفتحةٌ)، إعراب جملة (أزهارُها متفتحةٌ):', options: ['جملة اسمية في محل جر نعت', 'جملة اسمية في محل رفع خبر', 'جملة اسمية في محل نصب حال', 'جملة اسمية لا محل لها'], correct: 0, explanation: 'جملة اسمية في محل جر نعت لـ(حديقةٌ) لأن المنعوت نكرة.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'أيُّ الجمل ليس فيها نعت؟', options: ['جاء الرجلُ الكريمُ', 'هذا كتابٌ مفيدٌ', 'الطالبُ مجتهدٌ', 'رأيتُ حديقةً جميلةً'], correct: 2, explanation: 'الطالبُ مجتهدٌ: (مجتهدٌ) خبر مرفوع وليس نعتاً.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'في: (كرَّمتُ الطلابَ المتفوقين)، إعراب (المتفوقين):', options: ['نعت منصوب بالياء', 'نعت مجرور بالياء', 'مفعول به منصوب بالياء', 'بدل منصوب بالياء'], correct: 0, explanation: 'نعت منصوب بالياء لأنه جمع مذكر سالم، يتبع المنعوت في النصب.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'إذا كان المنعوت جمعاً مؤنثاً سالماً، فإن النعت الحقيقي المفرد يطابقه في:', options: ['التذكير فقط', 'التأنيث فقط', 'التثنية', 'الجمع'], correct: 1, explanation: 'يطابقه في التأنيث لأن الجمع المؤنث جمع حقيقي.' },
+
+            // ---- 5 مصطلحات ----
+            { type: 'mcq', category: 'مصطلحات', question: 'ما هو النعت لغةً؟', options: ['الوصف', 'التفضيل', 'التشبيه', 'التأكيد'], correct: 0, explanation: 'النعت في اللغة هو الوصف، وفي الاصطلاح: تابع يُذكر لبيان صفة متبوعه.' },
+            { type: 'mcq', category: 'مصطلحات', question: 'النعت الذي يطابق منعوته في أربعة من عشرة أوجه هو:', options: ['النعت السببي', 'النعت الحقيقي', 'النعت الجملة', 'النعت المقطوع'], correct: 1, explanation: 'النعت الحقيقي يطابق منعوته في أربعة من عشرة.' },
+            { type: 'mcq', category: 'مصطلحات', question: 'النعت الذي يوصف به ما بعده ويتبع ما قبله في الإعراب هو:', options: ['النعت الحقيقي', 'النعت السببي', 'نعت الجملة', 'نعت شبه الجملة'], correct: 1, explanation: 'النعت السببي يتبع ما قبله إعراباً ويصف ما بعده.' },
+            { type: 'mcq', category: 'مصطلحات', question: 'الجملة التي تُعرب نعتاً لا بد أن تشتمل على:', options: ['رابط يربطها بالمنعوت', 'فعل ماضٍ فقط', 'اسم إشارة', 'ضمير مستتر فقط'], correct: 0, explanation: 'جملة النعت يجب أن تشتمل على رابط يربطها بالمنعوت.' },
+            { type: 'mcq', category: 'مصطلحات', question: 'المنعوت هو:', options: ['الاسم الموصوف قبل النعت', 'الاسم الذي يتبع النعت', 'الجملة التي تصف النعت', 'الفعل الذي يصف النعت'], correct: 0, explanation: 'المنعوت هو الاسم الموصوف الذي يسبق النعت.' },
+
+            // ---- 10 مزاوجة ----
+            { type: 'matching', category: 'مزاوجة', question: 'زاوج بين كل جملة ونوع النعت فيها:', pairs: [{ key: 'جاء الطالبُ المجتهدُ', value: 'نعت حقيقي مفرد' }, { key: 'رأيتُ رجلاً يحمل حقيبة', value: 'نعت جملة فعلية' }, { key: 'مررتُ بحديقةٍ في وسط المدينة', value: 'نعت شبه جملة' }, { key: 'هذا كتابٌ قيمتُه عالية', value: 'نعت جملة اسمية' }, { key: 'جاءت الفتاةُ المؤدبةُ أخلاقُها', value: 'نعت سببي' }], correct: [0,1,2,3,4], explanation: 'التطابق: المجتهدُ نعت حقيقي، يحمل حقيبة جملة فعلية، في وسط المدينة شبه جملة، قيمتُه عالية جملة اسمية، المؤدبةُ أخلاقُها نعت سببي.' },
+            { type: 'matching', category: 'مزاوجة', question: 'زاوج بين كل جملة وعلامة إعراب النعت:', pairs: [{ key: 'هذا رجلٌ كريمٌ', value: 'نعت مرفوع بالضمة' }, { key: 'رأيتُ رجلاً كريماً', value: 'نعت منصوب بالفتحة' }, { key: 'مررتُ برجلٍ كريمٍ', value: 'نعت مجرور بالكسرة' }, { key: 'جاء المعلمان الفاضلان', value: 'نعت مرفوع بالألف' }, { key: 'كرَّمتُ الطلابَ المتفوقين', value: 'نعت منصوب بالياء' }], correct: [0,1,2,3,4], explanation: 'التطابق حسب علامة الإعراب الأصلية أو الفرعية.' },
+            { type: 'matching', category: 'مزاوجة', question: 'زاوج بين المصطلح وتعريفه:', pairs: [{ key: 'النعت الحقيقي', value: 'ما يصف منعوته مباشرة ويطابقه في أربعة من عشرة' }, { key: 'النعت السببي', value: 'ما يتبع ما قبله ويصف ما بعده في التذكير والتأنيث' }, { key: 'المنعوت', value: 'الاسم الموصوف الذي يسبق النعت' }, { key: 'الرابط', value: 'ضمير أو غيره يربط جملة النعت بالمنعوت' }, { key: 'النعت المقطوع', value: 'نعت يُرفع أو يُنصب أو يُجر على القطع' }], correct: [0,1,2,3,4], explanation: 'هذه التعريفات الدقيقة للمصطلحات النحوية.' },
+            { type: 'matching', category: 'مزاوجة', question: 'زاوج بين المثال ومحل جملة النعت:', pairs: [{ key: 'هذا كتابٌ قيمتُه عالية', value: 'جملة نعت في محل رفع' }, { key: 'رأيتُ رجلاً يحمل حقيبة', value: 'جملة نعت في محل نصب' }, { key: 'مررتُ بحديقةٍ أزهارُها متفتحةٌ', value: 'جملة نعت في محل جر' }, { key: 'جاء الطالبُ المجتهدُ', value: 'نعت مفرد مرفوع' }, { key: 'مررتُ برجلٍ كريمٍ', value: 'نعت مفرد مجرور' }], correct: [0,1,2,3,4], explanation: 'جملة النعت تُعرب في محل (رفع/نصب/جر) حسب موقع المنعوت.' },
+            { type: 'matching', category: 'مزاوجة', question: 'زاوج بين كل جملة وحكم النعت فيها:', pairs: [{ key: 'الطلابُ المجتهدون ناجحون', value: 'نعت مرفوع بالواو' }, { key: 'رأيتُ الطالباتِ المجتهداتِ', value: 'نعت منصوب بالكسرة' }, { key: 'مررتُ بمعلمين فاضلين', value: 'نعت مجرور بالياء' }, { key: 'جاءت الفتاةُ المؤدبةُ أخلاقُها', value: 'نعت سببي مرفوع' }, { key: 'هذا رجلٌ كريمٌ', value: 'نعت حقيقي مرفوع' }], correct: [0,1,2,3,4], explanation: 'التطابق حسب نوع النعت وعلامة إعرابه.' },
+            { type: 'matching', category: 'مزاوجة', question: 'زاوج بين كل جملة والمحل الإعرابي لجملة النعت:', pairs: [{ key: 'هذا كتابٌ قيمتُه عالية', value: 'جملة اسمية في محل رفع نعت' }, { key: 'رأيتُ رجلاً يحمل حقيبة', value: 'جملة فعلية في محل نصب نعت' }, { key: 'مررتُ بحديقةٍ أزهارُها متفتحةٌ', value: 'جملة اسمية في محل جر نعت' }, { key: 'أعجبتني حديقةٌ في وسط المدينة', value: 'شبه جملة في محل جر نعت' }, { key: 'جاء الطالبُ المجتهدُ', value: 'نعت مفرد مرفوع' }], correct: [0,1,2,3,4], explanation: 'جملة النعت وشبه الجملة تُعرب في محل حسب موقع المنعوت.' },
+            { type: 'matching', category: 'مزاوجة', question: 'زاوج بين كل مثال ونوع النعت:', pairs: [{ key: 'رأيتُ طالباً مجتهداً', value: 'نعت حقيقي' }, { key: 'جاء الطالبُ المجتهدُ أبوه', value: 'نعت سببي' }, { key: 'هذا كتابٌ قيمتُه عالية', value: 'نعت جملة اسمية' }, { key: 'رأيتُ رجلاً يحمل حقيبة', value: 'نعت جملة فعلية' }, { key: 'مررتُ بحديقةٍ في وسط المدينة', value: 'نعت شبه جملة' }], correct: [0,1,2,3,4], explanation: 'التطابق بين الأمثلة وأنواع النعت المختلفة.' },
+            { type: 'matching', category: 'مزاوجة', question: 'زاوج بين كل جملة وإعراب النعت فيها:', pairs: [{ key: 'جاء المعلمان الفاضلان', value: 'نعت مرفوع بالألف' }, { key: 'رأيتُ طالبين مجتهدين', value: 'نعت منصوب بالياء' }, { key: 'مررتُ بمعلمين فاضلين', value: 'نعت مجرور بالياء' }, { key: 'الطلابُ المجتهدون ناجحون', value: 'نعت مرفوع بالواو' }, { key: 'كرَّمتُ الطلابَ المتفوقين', value: 'نعت منصوب بالياء' }], correct: [0,1,2,3,4], explanation: 'التطابق حسب علامات الإعراب الفرعية.' },
+            { type: 'matching', category: 'مزاوجة', question: 'زاوج بين كل جملة ونوع النعت (حقيقي/سببي):', pairs: [{ key: 'هذا رجلٌ كريمٌ', value: 'نعت حقيقي' }, { key: 'جاءت الفتاةُ المؤدبةُ أخلاقُها', value: 'نعت سببي' }, { key: 'رأيتُ طالباً مجتهداً', value: 'نعت حقيقي' }, { key: 'مررتُ بحديقةٍ جميلةٍ', value: 'نعت حقيقي' }, { key: 'جاء الطالبُ المجتهدُ أبوه', value: 'نعت سببي' }], correct: [0,1,2,3,4], explanation: 'النعت الحقيقي يصف المنعوت مباشرة، والسببي يصف ما بعده.' },
+            { type: 'matching', category: 'مزاوجة', question: 'زاوج بين كل جملة وحكم النعت من حيث القطع:', pairs: [{ key: 'مررتُ برجلٍ كريمٍ', value: 'نعت مجرور تبعاً للمنعوت' }, { key: 'مررتُ برجلٍ كريمٌ', value: 'نعت مقطوع مرفوع' }, { key: 'رأيتُ رجلاً كريماً', value: 'نعت منصوب تبعاً للمنعوت' }, { key: 'هذا رجلٌ كريمٌ', value: 'نعت مرفوع تبعاً للمنعوت' }, { key: 'مررتُ برجلٍ كريمَ', value: 'نعت مقطوع منصوب' }], correct: [0,1,2,3,4], explanation: 'النعت المقطوع يُعرب حسب موقعه الجديد على القطع.' }
         ];
 
+        // =====================================================
+        // الدرس الثاني: التوكيد (20 سؤالاً)
+        // =====================================================
+        const lesson2Questions = [
+            // ---- 6 صح/خطأ ----
+            { type: 'tf', category: 'صح أم خطأ', question: 'التوكيد تابع يتبع المؤكد في إعرابه رفعاً ونصباً وجراً.', options: ['صح', 'خطأ'], correct: 0, explanation: 'صحيح؛ التوكيد من التوابع ويتبع المؤكد في إعرابه.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'ينقسم التوكيد إلى نوعين: لفظي ومعنوي.', options: ['صح', 'خطأ'], correct: 0, explanation: 'صحيح؛ التوكيد نوعان: لفظي (بتكرار اللفظ) ومعنوي (بألفاظ مخصوصة).' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'ألفاظ التوكيد المعنوي هي: النفس، العين، كل، جميع، عامة، كلا، كلتا.', options: ['صح', 'خطأ'], correct: 0, explanation: 'صحيح؛ هذه هي ألفاظ التوكيد المعنوي المعروفة.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'يشترط في التوكيد المعنوي أن يتصل بضمير يعود على المؤكد.', options: ['صح', 'خطأ'], correct: 0, explanation: 'صحيح؛ لا بد من ضمير يعود على المؤكد نحو: جاء الطالبُ نفسُه.' },
+            { type: 'tf', category: 'صح أم خطأ', question: 'التوكيد اللفظي يكون بتكرار اللفظ فقط، ولا يكون بتكرار الجملة.', options: ['صح', 'خطأ'], correct: 1, explanation: 'خطأ؛ التوكيد اللفظي يكون بتكرار اللفظ المفرد أو الجملة أو الحرف.' },
+            { type: 'tf', category: 'صح أم خطأ', question: '(كلا) و(كلتا) يتبعان المؤكد في الإعراب، ويشترطان أن يكون المؤكد مثنى.', options: ['صح', 'خطأ'], correct: 0, explanation: 'صحيح؛ كلا وكلتا يؤكدان المثنى فقط، ويتبعانه في الإعراب.' },
+
+            // ---- 8 اختيار متعدد ----
+            { type: 'mcq', category: 'اختيار متعدد', question: 'في: (جاء الطالبُ نفسُه)، إعراب (نفسُه):', options: ['توكيد معنوي مرفوع', 'توكيد لفظي مرفوع', 'نعت مرفوع', 'بدل مرفوع'], correct: 0, explanation: 'نفسُه: توكيد معنوي مرفوع، والهاء ضمير متصل في محل جر بالإضافة.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'في: (قرأتُ الكتابَ كلَّه)، إعراب (كلَّه):', options: ['توكيد معنوي منصوب', 'توكيد لفظي منصوب', 'نعت منصوب', 'مفعول به ثانٍ'], correct: 0, explanation: 'كلَّه: توكيد معنوي منصوب تبعاً للمؤكد (الكتابَ).' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'في: (أكلتُ التفاحتين كلتيهما)، إعراب (كلتيهما):', options: ['توكيد معنوي منصوب بالياء', 'توكيد لفظي منصوب', 'نعت منصوب', 'بدل منصوب'], correct: 0, explanation: 'كلتيهما: توكيد معنوي منصوب بالياء لأنه ملحق بالمثنى.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'في: (نجح الطلابُ جميعُهم)، إعراب (جميعُهم):', options: ['توكيد معنوي مرفوع', 'توكيد لفظي مرفوع', 'نعت مرفوع', 'خبر مرفوع'], correct: 0, explanation: 'جميعُهم: توكيد معنوي مرفوع تبعاً للمؤكد (الطلابُ).' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'في: (الوطنُ الوطنُ هو الباقي)، نوع التوكيد في (الوطنُ) الثانية:', options: ['توكيد لفظي', 'توكيد معنوي', 'نعت', 'بدل'], correct: 0, explanation: 'توكيد لفظي بتكرار لفظ (الوطنُ).' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'أيُّ الجمل تحتوي على توكيد معنوي؟', options: ['لا لا أتراجع عن حقي', 'جاء القومُ كلُّهم', 'كان الأمرُ الأمرَ', 'هو هو المجتهد'], correct: 1, explanation: 'كلُّهم: توكيد معنوي مرفوع، والباقي توكيد لفظي.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: '(عامة) و(جميع) تُستعملان لتوكيد:', options: ['المفرد', 'المثنى', 'الجمع', 'كل ما سبق'], correct: 2, explanation: 'عامة وجميع تُستعملان لتوكيد الجمع.' },
+            { type: 'mcq', category: 'اختيار متعدد', question: 'في: (رأيتُ نفسي في المرآة)، إعراب (نفسي):', options: ['توكيد معنوي منصوب', 'مفعول به منصوب', 'نعت منصوب', 'بدل منصوب'], correct: 0, explanation: 'نفسي: توكيد معنوي منصوب لـ(المفعول المحذوف) أو للمؤكد، والياء في محل جر.' },
+
+            // ---- 3 مصطلحات ----
+            { type: 'mcq', category: 'مصطلحات', question: 'التوكيد الذي يكون بتكرار اللفظ أو الجملة أو الحرف هو:', options: ['التوكيد اللفظي', 'التوكيد المعنوي', 'النعت', 'البدل'], correct: 0, explanation: 'التوكيد اللفظي: تكرار اللفظ أو الجملة أو الحرف.' },
+            { type: 'mcq', category: 'مصطلحات', question: 'من ألفاظ التوكيد المعنوي الخاصة بالمثنى:', options: ['النفس', 'كل', 'كلا وكلتا', 'جميع'], correct: 2, explanation: 'كلا وكلتا لتوكيد المثنى، وتتبعان المؤكد في الإعراب.' },
+            { type: 'mcq', category: 'مصطلحات', question: 'التوكيد المعنوي يشترط فيه اتصاله بـ:', options: ['ضمير يعود على المؤكد', 'اسم إشارة', 'حرف جر', 'فعل ماضٍ'], correct: 0, explanation: 'لا بد من ضمير يعود على المؤكد نحو: جاء الطالبُ نفسُه.' },
+
+            // ---- 3 مزاوجة ----
+            { type: 'matching', category: 'مزاوجة', question: 'زاوج بين الجملة ونوع التوكيد فيها:', pairs: [{ key: 'جاء الطالبُ نفسُه', value: 'توكيد معنوي' }, { key: 'قرأتُ الكتابَ كلَّه', value: 'توكيد معنوي' }, { key: 'الوطنُ الوطنُ هو الباقي', value: 'توكيد لفظي' }, { key: 'أكلتُ التفاحتين كلتيهما', value: 'توكيد معنوي' }, { key: 'لا لا أتراجع عن حقي', value: 'توكيد لفظي' }], correct: [0,1,2,3,4], explanation: 'نفسُه وكلَّه وكلتيهما توكيد معنوي، وتكرار اللفظ توكيد لفظي.' },
+            { type: 'matching', category: 'مزاوجة', question: 'زاوج بين لفظ التوكيد والاسم الذي يؤكده:', pairs: [{ key: 'نفس - عين', value: 'توكيد للمفرد والمثنى والجمع' }, { key: 'كلا - كلتا', value: 'توكيد للمثنى فقط' }, { key: 'جميع - عامة - كل', value: 'توكيد للجمع' }, { key: 'النفس', value: 'توكيد للعاقل غالباً' }, { key: 'العين', value: 'توكيد للعاقل وغيره' }], correct: [0,1,2,3,4], explanation: 'كل لفظ من ألفاظ التوكيد له استعماله الخاص.' },
+            { type: 'matching', category: 'مزاوجة', question: 'زاوج بين المثال وإعراب التوكيد:', pairs: [{ key: 'نجح الطلابُ جميعُهم', value: 'توكيد معنوي مرفوع' }, { key: 'قرأتُ الكتابَ كلَّه', value: 'توكيد معنوي منصوب' }, { key: 'مررتُ بالحدائقِ كلِّها', value: 'توكيد معنوي مجرور' }, { key: 'جاء المعلمان كلاهما', value: 'توكيد معنوي مرفوع بالألف' }, { key: 'رأيتُ الطالبين كليهما', value: 'توكيد معنوي منصوب بالياء' }], correct: [0,1,2,3,4], explanation: 'التوكيد يتبع المؤكد في الإعراب وعلاماته.' }
+        ];
+
+        // =====================================================
+        // متغيرات اللعبة
+        // =====================================================
+        let currentLesson = 0;
+        let activeQuestions = [];
         let currentQuestionIndex = 0;
         let score = 0;
+        let totalQuestions = 0;
+        let currentMatchingSelectedKey = null;
+        let matchingPairsState = [];
+        let matchingCompleted = false;
+        let matchingCorrectCount = 0;
+        let questionAnswered = false;
 
-        function startGame() {
-            document.getElementById('start-screen').classList.add('hidden');
-            document.getElementById('result-screen').classList.add('hidden');
-            document.getElementById('quiz-screen').classList.remove('hidden');
+        // =====================================================
+        // التنقل بين الشاشات
+        // =====================================================
+        function showLessons() {
+            playSound('click');
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('lessonsScreen').classList.remove('hidden');
+            document.getElementById('scorePanel').classList.add('hidden');
+            document.getElementById('scorePanel').classList.remove('flex');
+        }
+
+        function goToLessons() {
+            playSound('click');
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('lessonsScreen').classList.remove('hidden');
+            document.getElementById('scorePanel').classList.add('hidden');
+            document.getElementById('scorePanel').classList.remove('flex');
+        }
+
+        function startLesson(lessonNumber) {
+            playSound('click');
+            currentLesson = lessonNumber;
+            activeQuestions = (lessonNumber === 1) ? lesson1Questions : lesson2Questions;
+            totalQuestions = activeQuestions.length;
             currentQuestionIndex = 0;
             score = 0;
-            document.getElementById('score').innerText = score;
-            showQuestion();
+            questionAnswered = false;
+
+            updateScoreDisplay();
+            updateProgressDisplay();
+
+            document.getElementById('lessonsScreen').classList.add('hidden');
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('scorePanel').classList.remove('hidden');
+            document.getElementById('scorePanel').classList.add('flex');
+
+            loadQuestion();
         }
 
-        function showQuestion() {
-            const q = questions[currentQuestionIndex];
+        function restartLesson() {
+            startLesson(currentLesson);
+        }
 
-            // Reset UI
-            document.getElementById('explanation-box').classList.add('hidden');
-            document.getElementById('next-btn').classList.add('hidden');
+        // =====================================================
+        // تحميل السؤال
+        // =====================================================
+        function loadQuestion() {
+            if (currentQuestionIndex >= totalQuestions) {
+                showResult();
+                return;
+            }
 
-            // Update Header
-            document.getElementById('section-badge').innerText = q.section;
-            document.getElementById('question-number').innerText = `السؤال ${currentQuestionIndex + 1} من ${questions.length}`;
+            questionAnswered = false;
+            const q = activeQuestions[currentQuestionIndex];
 
-            // Update Progress Bar
-            const progress = (currentQuestionIndex / questions.length) * 100;
-            document.getElementById('progress-bar').style.width = progress + '%';
+            const progressPercent = (currentQuestionIndex / totalQuestions) * 100;
+            document.getElementById('progressBar').style.width = progressPercent + '%';
+            document.getElementById('questionTypeBadge').textContent = q.category;
+            document.getElementById('questionNumberText').textContent = 'السؤال ' + (currentQuestionIndex + 1) + ' من ' + totalQuestions;
+            document.getElementById('questionText').textContent = q.question;
+            document.getElementById('feedbackBox').classList.add('hidden');
 
-            // Question Text
-            document.getElementById('question-text').innerText = q.question;
+            const answersContainer = document.getElementById('answersContainer');
+            const matchingContainer = document.getElementById('matchingContainer');
 
-            // Build Options
-            const container = document.getElementById('options-container');
+            if (q.type === 'matching') {
+                answersContainer.classList.add('hidden');
+                matchingContainer.classList.remove('hidden');
+                renderMatchingQuestion(q);
+            } else {
+                answersContainer.classList.remove('hidden');
+                matchingContainer.classList.add('hidden');
+                renderMultipleChoiceQuestion(q);
+            }
+        }
+
+        function renderMultipleChoiceQuestion(q) {
+            const container = document.getElementById('answersContainer');
             container.innerHTML = '';
-
-            q.options.forEach((opt, i) => {
+            q.options.forEach((opt, index) => {
                 const btn = document.createElement('button');
-                btn.className = 'option-btn w-full text-right bg-white border-2 border-gray-200 hover:border-green-500 hover:bg-green-50 p-4 rounded-xl font-medium text-gray-800 text-lg';
-                btn.innerText = opt;
-                btn.dataset.value = opt;
-                btn.onclick = () => selectOption(btn, opt, q);
+                btn.className = 'w-full text-right px-5 py-3 bg-indigo-900/60 hover:bg-indigo-800/80 border border-indigo-700/60 rounded-xl text-slate-200 font-semibold text-base transition-all duration-200 flex items-center space-x-3 space-x-reverse';
+                btn.innerHTML = '<span class="w-7 h-7 flex-shrink-0 flex items-center justify-center bg-indigo-950 rounded-full border border-indigo-600 text-amber-400 font-bold text-sm">' + (index + 1) + '</span><span>' + opt + '</span>';
+                btn.onclick = function () { handleAnswer(index, btn); };
                 container.appendChild(btn);
             });
+        }
 
-            // Change Next button label on last question
-            const nextBtn = document.getElementById('next-btn');
-            if (currentQuestionIndex === questions.length - 1) {
-                nextBtn.innerHTML = 'عرض النتيجة 🏁';
+        function handleAnswer(selectedIndex, btnElement) {
+            if (questionAnswered) return;
+            questionAnswered = true;
+
+            const q = activeQuestions[currentQuestionIndex];
+            const isCorrect = (selectedIndex === q.correct);
+            const allButtons = document.querySelectorAll('#answersContainer button');
+
+            allButtons.forEach((btn, idx) => {
+                btn.classList.add('option-disabled');
+                if (idx === q.correct) btn.classList.add('correct-card');
+                else if (idx === selectedIndex && !isCorrect) btn.classList.add('wrong-card');
+            });
+
+            if (isCorrect) {
+                score++;
+                updateScoreDisplay();
+                playSound('correct');
             } else {
-                nextBtn.innerHTML = 'السؤال التالي ⬅️';
+                playSound('wrong');
+            }
+
+            showFeedback(isCorrect, q.explanation);
+        }
+
+        // =====================================================
+        // المزاوجة
+        // =====================================================
+        function renderMatchingQuestion(q) {
+            const keysContainer = document.getElementById('matchingKeys');
+            const valuesContainer = document.getElementById('matchingValues');
+            keysContainer.innerHTML = '';
+            valuesContainer.innerHTML = '';
+
+            currentMatchingSelectedKey = null;
+            matchingCompleted = false;
+            matchingCorrectCount = 0;
+            matchingPairsState = q.pairs.map((pair, i) => ({
+                key: pair.key, value: pair.value, keyIndex: i, pairedValueIndex: null, paired: false
+            }));
+
+            const shuffledValues = [...q.pairs].map((p, i) => ({ text: p.value, originalIndex: i }));
+            shuffleArray(shuffledValues);
+
+            q.pairs.forEach((pair, index) => {
+                const keyBtn = document.createElement('button');
+                keyBtn.className = 'w-full text-right px-4 py-2.5 bg-indigo-900/60 border border-indigo-700/60 rounded-xl text-slate-200 font-semibold text-sm transition-all duration-200 matching-key-btn';
+                keyBtn.dataset.keyIndex = index;
+                keyBtn.textContent = pair.key;
+                keyBtn.onclick = function () { selectMatchingKey(index, keyBtn); };
+                keysContainer.appendChild(keyBtn);
+            });
+
+            shuffledValues.forEach((item) => {
+                const valBtn = document.createElement('button');
+                valBtn.className = 'w-full text-right px-4 py-2.5 bg-indigo-950/80 border border-indigo-700/60 rounded-xl text-slate-300 font-semibold text-sm transition-all duration-200 matching-value-btn';
+                valBtn.dataset.valueIndex = item.originalIndex;
+                valBtn.textContent = item.text;
+                valBtn.onclick = function () { selectMatchingValue(item.originalIndex, valBtn); };
+                valuesContainer.appendChild(valBtn);
+            });
+        }
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function selectMatchingKey(keyIndex, keyBtn) {
+            if (matchingCompleted) return;
+            const state = matchingPairsState[keyIndex];
+            if (!state || state.paired) return;
+
+            document.querySelectorAll('.matching-key-btn').forEach(btn => btn.classList.remove('match-selected'));
+            currentMatchingSelectedKey = keyIndex;
+            keyBtn.classList.add('match-selected');
+            playSound('click');
+        }
+
+        function selectMatchingValue(valueIndex, valBtn) {
+            if (matchingCompleted) return;
+            if (currentMatchingSelectedKey === null) return;
+
+            const keyState = matchingPairsState[currentMatchingSelectedKey];
+            if (!keyState || keyState.paired) return;
+
+            const alreadyPaired = matchingPairsState.some(s => s.pairedValueIndex === valueIndex);
+            if (alreadyPaired) return;
+
+            const q = activeQuestions[currentQuestionIndex];
+            const correctValueIndex = q.correct[currentMatchingSelectedKey];
+            const isCorrect = (valueIndex === correctValueIndex);
+
+            keyState.pairedValueIndex = valueIndex;
+            keyState.paired = true;
+
+            if (isCorrect) {
+                matchingCorrectCount++;
+                playSound('correct');
+            } else {
+                playSound('wrong');
+            }
+
+            const keyBtn = document.querySelector('.matching-key-btn[data-key-index="' + currentMatchingSelectedKey + '"]');
+            if (keyBtn) {
+                keyBtn.classList.remove('match-selected');
+                keyBtn.classList.add('match-paired');
+                keyBtn.style.borderColor = isCorrect ? '#10b981' : '#ef4444';
+            }
+            valBtn.classList.add('match-paired');
+            valBtn.style.borderColor = isCorrect ? '#10b981' : '#ef4444';
+
+            currentMatchingSelectedKey = null;
+
+            if (matchingCorrectCount === q.pairs.length) {
+                matchingCompleted = true;
+                questionAnswered = true;
+                score++;
+                updateScoreDisplay();
+                showFeedback(true, q.explanation);
+            } else if (matchingPairsState.every(s => s.paired)) {
+                matchingCompleted = true;
+                questionAnswered = true;
+                showFeedback(false, q.explanation);
             }
         }
 
-        function selectOption(clickedBtn, selectedValue, q) {
-            const container = document.getElementById('options-container');
-            const allButtons = container.querySelectorAll('button');
+        // =====================================================
+        // التغذية الراجعة
+        // =====================================================
+        function showFeedback(isCorrect, explanation) {
+            const feedbackBox = document.getElementById('feedbackBox');
+            const feedbackHeader = document.getElementById('feedbackHeader');
+            const feedbackText = document.getElementById('feedbackText');
 
-            // Disable all buttons to prevent double-clicking
-            allButtons.forEach(btn => {
-                btn.disabled = true;
-                btn.classList.add('option-dim');
-                // Highlight the correct answer
-                if (btn.dataset.value === q.answer) {
-                    btn.classList.remove('option-dim');
-                    btn.classList.add('option-correct');
-                }
-                // Highlight wrong selected answer
-                if (btn.dataset.value === selectedValue && selectedValue !== q.answer) {
-                    btn.classList.remove('option-dim');
-                    btn.classList.add('option-wrong');
-                }
-            });
+            feedbackBox.classList.remove('hidden');
 
-            // Update Score
-            const isCorrect = selectedValue === q.answer;
             if (isCorrect) {
-                score++;
-                document.getElementById('score').innerText = score;
-            }
-
-            // Show Explanation
-            const expBox = document.getElementById('explanation-box');
-            const expTitle = document.getElementById('explanation-title');
-            const expText = document.getElementById('explanation-text');
-
-            expBox.classList.remove('hidden');
-            if (isCorrect) {
-                expBox.className = 'p-4 rounded-xl mb-6 text-sm md:text-base border bg-green-50 border-green-300';
-                expTitle.className = 'font-bold mb-1 text-green-700';
-                expTitle.innerText = '✅ إجابة صحيحة!';
+                feedbackBox.className = 'p-4 rounded-2xl mb-4 border text-right transition duration-300 bg-emerald-900/40 border-emerald-500/50 glow-box-neon';
+                feedbackHeader.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i><span class="text-emerald-300">إجابة صحيحة! أحسنت</span>';
             } else {
-                expBox.className = 'p-4 rounded-xl mb-6 text-sm md:text-base border bg-red-50 border-red-300';
-                expTitle.className = 'font-bold mb-1 text-red-700';
-                expTitle.innerText = `❌ إجابة خاطئة! الصحيح هو: ${q.answer}`;
+                feedbackBox.className = 'p-4 rounded-2xl mb-4 border text-right transition duration-300 bg-rose-900/40 border-rose-500/50';
+                feedbackHeader.innerHTML = '<i class="fa-solid fa-circle-xmark text-rose-400 text-xl"></i><span class="text-rose-300">إجابة خاطئة، تعلم من التوضيح</span>';
             }
-            expText.innerText = q.explanation;
 
-            // Show Next Button
-            document.getElementById('next-btn').classList.remove('hidden');
-
-            // Scroll to explanation smoothly
-            expBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            feedbackText.textContent = explanation;
+            feedbackBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
 
         function nextQuestion() {
             currentQuestionIndex++;
-            if (currentQuestionIndex < questions.length) {
-                showQuestion();
-                // Scroll to top of quiz
-                document.getElementById('quiz-screen').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            updateProgressDisplay();
+            if (currentQuestionIndex >= totalQuestions) {
+                showResult();
             } else {
-                showResults();
+                loadQuestion();
             }
         }
 
-        function showResults() {
-            document.getElementById('quiz-screen').classList.add('hidden');
-            document.getElementById('result-screen').classList.remove('hidden');
-
-            // Update Progress Bar to 100%
-            document.getElementById('progress-bar').style.width = '100%';
-
-            const total = questions.length;
-            const percent = Math.round((score / total) * 100);
-
-            document.getElementById('final-score').innerText = `${score} / ${total}`;
-            document.getElementById('percentage').innerText = `${percent}%`;
-
-            // Result message based on score
-            const resultMsg = document.getElementById('result-message');
-            const resultIcon = document.getElementById('result-icon');
-
-            if (percent >= 90) {
-                resultIcon.innerText = '🏆';
-                resultMsg.innerText = 'ممتاز! أنت متمكن من قواعد أسلوبي المدح والذم بامتياز! 🌟';
-            } else if (percent >= 75) {
-                resultIcon.innerText = '🎉';
-                resultMsg.innerText = 'رائع جداً! مستواك عالٍ، واصل التميز! 👏';
-            } else if (percent >= 60) {
-                resultIcon.innerText = '👍';
-                resultMsg.innerText = 'جيد! تحتاج إلى مراجعة بسيطة لبعض القواعد. 💪';
-            } else if (percent >= 40) {
-                resultIcon.innerText = '📚';
-                resultMsg.innerText = 'مقبول، لكن يُنصح بمراجعة الدرس مرة أخرى. 📖';
-            } else {
-                resultIcon.innerText = '💡';
-                resultMsg.innerText = 'لا تقلق، حاول مرة أخرى بعد مراجعة القواعد. ستتحسن حتماً! 🌱';
-            }
+        function updateScoreDisplay() {
+            document.getElementById('scoreDisplay').textContent = score;
         }
 
-        function restartGame() {
-            document.getElementById('result-screen').classList.add('hidden');
-            document.getElementById('start-screen').classList.remove('hidden');
-            document.getElementById('progress-bar').style.width = '0%';
-            currentQuestionIndex = 0;
-            score = 0;
-            document.getElementById('score').innerText = 0;
+        function updateProgressDisplay() {
+            document.getElementById('progressDisplay').textContent = currentQuestionIndex + '/' + totalQuestions;
+        }
+
+        // =====================================================
+        // شاشة النتيجة
+        // =====================================================
+        function showResult() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+
+            const percentage = Math.round((score / totalQuestions) * 100);
+            document.getElementById('finalScore').textContent = score + ' / ' + totalQuestions;
+            document.getElementById('finalPercentage').textContent = percentage + '%';
+
+            const badge = document.getElementById('resultBadge');
+            const title = document.getElementById('resultTitle');
+            const subtitle = document.getElementById('resultSubtitle');
+            const teacherNote = document.getElementById('teacherNote');
+
+            if (percentage >= 90) {
+                badge.className = 'w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl mb-6 shadow-2xl bg-gradient-to-tr from-amber-500 to-yellow-300 text-indigo-950';
+                badge.innerHTML = '<i class="fa-solid fa-trophy"></i>';
+                title.textContent = 'مبدع! نتيجة استثنائية';
+                title.className = 'text-3xl font-black mb-2 text-amber-300';
+                subtitle.textContent = 'أداء رائع! لقد أتقنت الدرس إتقاناً تاماً.';
+                teacherNote.innerHTML = '<i class="fa-solid fa-award ml-1"></i> مبارك هذا التميز! أنت من الطلاب المتميزين. واصل التفوق. - الأستاذ عبده حاتم';
+                playSound('win');
+                triggerConfetti();
+            } else if (percentage >= 75) {
+                badge.className = 'w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl mb-6 shadow-2xl bg-gradient-to-tr from-emerald-500 to-teal-300 text-indigo-950';
+                badge.innerHTML = '<i class="fa-solid fa-medal"></i>';
+                title.textContent = 'ممتاز جداً!';
+                title.className = 'text-3xl font-black mb-2 text-emerald-300';
+                subtitle.textContent = 'مستوى متقدم! أنت قريب جداً من الإتقان الكامل.';
+                teacherNote.innerHTML = '<i class="fa-solid fa-thumbs-up ml-1"></i> نتيجة مشرفة! راجع فقط بعض المفاهيم الدقيقة وستصل إلى العلامة الكاملة. - الأستاذ عبده حاتم';
+                playSound('win');
+                triggerConfetti();
+            } else if (percentage >= 50) {
+                badge.className = 'w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl mb-6 shadow-2xl bg-gradient-to-tr from-indigo-500 to-blue-300 text-white';
+                badge.innerHTML = '<i class="fa-solid fa-star"></i>';
+                title.textContent = 'جيد، واصل التدريب!';
+                title.className = 'text-3xl font-black mb-2 text-indigo-300';
+                subtitle.textContent = 'أساس جيد، لكن تحتاج إلى مراجعة بعض الأجزاء.';
+                teacherNote.innerHTML = '<i class="fa-solid fa-book-open ml-1"></i> راجع الأمثلة جيداً وأعد الاختبار. أنا واثق بقدرتك على التحسن. - الأستاذ عبده حاتم';
+            } else {
+                badge.className = 'w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl mb-6 shadow-2xl bg-gradient-to-tr from-rose-600 to-pink-400 text-white';
+                badge.innerHTML = '<i class="fa-solid fa-heart"></i>';
+                title.textContent = 'لا تستسلم!';
+                title.className = 'text-3xl font-black mb-2 text-rose-300';
+                subtitle.textContent = 'البداية دائماً صعبة، لكنك قادر على النجاح بالمراجعة.';
+                teacherNote.innerHTML = '<i class="fa-solid fa-hand-holding-heart ml-1"></i> لا تحزن! ادرس القواعد الأساسية ثم أعد التحدي. أنا متأكد أنك ستفاجئني بنتيجتك. - الأستاذ عبده حاتم';
+                playSound('sad');
+            }
+
+            document.getElementById('progressBar').style.width = '100%';
+        }
+
+        function triggerConfetti() {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#fbbf24', '#10b981', '#6366f1', '#f43f5e'] });
+            setTimeout(() => {
+                confetti({ particleCount: 100, spread: 100, origin: { y: 0.5 }, colors: ['#fbbf24', '#10b981', '#6366f1', '#f43f5e'] });
+            }, 500);
         }
     </script>
 </body>
-</html>
+    </html>
