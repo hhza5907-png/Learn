@@ -5,25 +5,22 @@ window.LESSONS_REGISTRY = [
     {
         title: "النعت",
         description: "50 سؤالاً شاملاً في النعت الحقيقي والسببي والجملة وشبه الجملة.",
-        file: "lesson1.js",
-        varName: "LESSON1_DATA"   // ← اسم المتغير الذي يعيّنه الملف
+        file: "lesson1.js"
     },
     {
         title: "التوكيد",
         description: "20 سؤالاً في التوكيد اللفظي والمعنوي مع تطبيقات متنوعة.",
-        file: "lesson2.js",
-        varName: "LESSON2_DATA"
+        file: "lesson2.js"
     },
     {
         title: "المدرسة الرومانسية",
         description: "40 سؤالاً في الأدب الرومانسي: النشأة، الخصائص، أعلامه، ومدارسه.",
-        file: "lesson3.js",
-        varName: "LESSON3_DATA"
+        file: "lesson3.js"
     }
 ];
 
 // ============================================================
-// تحميل ملفات الدروس تلقائياً
+// تحميل ملفات الدروس تلقائياً بعد تحميل الصفحة
 // ============================================================
 (function loadLessons() {
     const promises = window.LESSONS_REGISTRY.map(lesson => {
@@ -31,11 +28,9 @@ window.LESSONS_REGISTRY = [
             const script = document.createElement('script');
             script.src = lesson.file;
             script.onload = () => {
-                // نأخذ البيانات من المتغير المخصص لهذا الدرس
-                lesson.questions = window[lesson.varName] || [];
-                if (!lesson.questions.length) {
-                    console.error('لم يتم العثور على بيانات الدرس:', lesson.varName, 'في', lesson.file);
-                }
+                // الملف يجب أن يُعيّن: window.LESSON_DATA = [...]
+                lesson.questions = window.LESSON_DATA;
+                window.LESSON_DATA = null; // تصفير للدرس التالي
                 resolve();
             };
             script.onerror = () => {
