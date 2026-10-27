@@ -1,1 +1,499 @@
+سيظهر النص الذي تقوم بنسخه هنا تلقائيًا<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>اختبارات الأستاذ عبده حاتم التفاعلية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            user-select: none;
+        }
+        .glow-box { box-shadow: 0 0 25px rgba(251, 191, 36, 0.3); }
+        .glow-box-neon { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(251, 191, 36, 0.8); }
+        }
+        .animate-glow { animation: pulseGlow 2s infinite; }
+        .correct-card { background-color: #065f46 !important; border-color: #10b981 !important; animation: bounce 0.5s ease; }
+        .wrong-card { background-color: #991b1b !important; border-color: #ef4444 !important; animation: shake 0.5s ease; }
+        @keyframes shake { 0%,100%{transform:translateX(0);} 20%,60%{transform:translateX(-10px);} 40%,80%{transform:translateX(10px);} }
+        @keyframes bounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #3730a3; border-radius: 4px; }
+        .option-disabled { pointer-events: none; opacity: 0.85; }
+        .match-selected { background-color: #b45309 !important; border-color: #fbbf24 !important; box-shadow: 0 0 15px rgba(251,191,36,0.6); }
+        .match-paired { opacity: 0.45; pointer-events: none; }
+        .float-bg { position: fixed; font-size: 120px; opacity: 0.04; color: #fbbf24; z-index: 0; pointer-events: none; }
+    </style>
+</head>
+<body class="flex flex-col justify-between min-h-screen p-2 md:p-6 overflow-x-hidden">
 
+    <i class="fa-solid fa-book-quran float-bg" style="top: 10%; left: 5%;"></i>
+    <i class="fa-solid fa-feather float-bg" style="bottom: 10%; right: 5%;"></i>
+
+    <header class="w-full max-w-5xl mx-auto flex flex-wrap justify-between items-center p-4 bg-indigo-950/80 backdrop-blur-md rounded-2xl border border-amber-500/30 shadow-2xl mb-4 relative z-10">
+        <div class="flex items-center space-x-3 space-x-reverse">
+            <div class="w-12 h-12 bg-amber-500 text-indigo-950 rounded-xl flex items-center justify-center font-black text-2xl shadow-lg transform rotate-3">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div>
+                <h1 class="text-lg md:text-2xl font-black text-amber-400 tracking-wide">اختبارات الأستاذ عبده حاتم</h1>
+                <p class="text-xs text-indigo-200">للنحو العربي والأدب والتدريب التفاعلي</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4 space-x-reverse mt-2 md:mt-0">
+            <button onclick="toggleSound()" class="px-3 py-2 bg-indigo-900/80 hover:bg-indigo-800 text-amber-400 rounded-lg border border-amber-500/30 transition flex items-center space-x-1 space-x-reverse">
+                <i id="soundIcon" class="fa-solid fa-volume-high"></i>
+                <span class="text-xs font-bold">الصوت</span>
+            </button>
+            <div id="scorePanel" class="hidden items-center bg-indigo-900/90 px-4 py-2 rounded-xl border border-indigo-700/50 space-x-4 space-x-reverse">
+                <div class="text-center">
+                    <span class="block text-[10px] text-indigo-300 font-bold">النقاط</span>
+                    <span id="scoreDisplay" class="text-lg font-black text-amber-400">0</span>
+                </div>
+                <div class="h-6 w-px bg-indigo-700"></div>
+                <div class="text-center">
+                    <span class="block text-[10px] text-indigo-300 font-bold">التقدم</span>
+                    <span id="progressDisplay" class="text-lg font-black text-emerald-400">0/0</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="w-full max-w-5xl mx-auto flex-grow flex flex-col justify-center relative z-10">
+
+        <div id="welcomeScreen" class="bg-indigo-950/70 backdrop-blur-md rounded-3xl p-6 md:p-10 border-2 border-amber-500/40 text-center glow-box my-auto">
+            <div class="w-24 h-24 bg-gradient-to-tr from-amber-500 to-yellow-300 rounded-full mx-auto flex items-center justify-center text-indigo-950 text-5xl mb-6 shadow-2xl animate-bounce">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <h2 class="text-2xl md:text-4xl font-extrabold text-amber-300 mb-3">أهلاً وسهلاً بك في صفحة الأستاذ عبده حاتم</h2>
+            <p class="text-indigo-200 text-sm md:text-base max-w-2xl mx-auto mb-4 leading-relaxed">
+                هذه الصفحة مخصصة لاختبار قدراتك في النحو العربي والأدب والنصوص بشكل تفاعلي وممتع.
+            </p>
+            <p class="text-amber-300 font-bold text-sm mb-8">هل أنت مستعد لإثبات مهاراتك؟ اضغط على الزر أدناه للدخول.</p>
+            <button onclick="showLessons()" class="px-10 py-4 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-indigo-950 text-xl font-black rounded-2xl shadow-xl hover:scale-105 transform transition duration-300 animate-glow">
+                <i class="fa-solid fa-door-open ml-2"></i> أنا مستعد... دعني أدخل
+            </button>
+        </div>
+
+        <div id="lessonsScreen" class="hidden bg-indigo-950/70 backdrop-blur-md rounded-3xl p-6 md:p-10 border-2 border-amber-500/40 text-center glow-box my-auto">
+            <h2 class="text-2xl md:text-3xl font-extrabold text-amber-300 mb-2">اختر الدرس الذي تريد اختباره</h2>
+            <p class="text-indigo-200 text-sm mb-8">كل درس يحتوي على مجموعة أسئلة تفاعلية شاملة.</p>
+            <div id="lessonsGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto"></div>
+        </div>
+
+        <div id="gameScreen" class="hidden bg-indigo-950/80 backdrop-blur-md rounded-3xl p-4 md:p-8 border border-amber-500/30 shadow-2xl relative">
+            <div class="w-full bg-indigo-900/80 rounded-full h-3 mb-6 overflow-hidden border border-indigo-700">
+                <div id="progressBar" class="bg-gradient-to-r from-amber-500 to-emerald-400 h-full w-0 transition-all duration-300"></div>
+            </div>
+            <div class="flex justify-between items-center mb-4">
+                <span id="questionTypeBadge" class="bg-amber-500/20 text-amber-300 text-xs font-bold px-3 py-1 rounded-full border border-amber-500/40">نوع السؤال</span>
+                <span id="questionNumberText" class="text-xs text-indigo-300 font-bold">السؤال 1</span>
+            </div>
+            <div class="bg-indigo-900/40 p-5 rounded-2xl border border-indigo-800/80 mb-6">
+                <h3 id="questionText" class="text-lg md:text-xl font-bold text-slate-100 leading-relaxed text-right">نص السؤال...</h3>
+            </div>
+            <div id="answersContainer" class="space-y-3 mb-6"></div>
+            <div id="matchingContainer" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="space-y-2" id="matchingKeys"></div>
+                <div class="space-y-2" id="matchingValues"></div>
+            </div>
+            <div id="feedbackBox" class="hidden p-4 rounded-2xl mb-4 border text-right transition duration-300">
+                <div class="flex items-center space-x-2 space-x-reverse font-bold text-lg mb-1" id="feedbackHeader"></div>
+                <p id="feedbackText" class="text-sm text-slate-200 leading-relaxed"></p>
+                <button onclick="nextQuestion()" class="mt-3 px-6 py-2 bg-amber-500 hover:bg-amber-400 text-indigo-950 font-extrabold rounded-xl text-sm transition">
+                    السؤال التالي <i class="fa-solid fa-arrow-left mr-1"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="resultScreen" class="hidden bg-indigo-950/80 backdrop-blur-md rounded-3xl p-6 md:p-10 border-2 border-amber-500/50 text-center glow-box my-auto">
+            <div id="resultBadge" class="w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl mb-6 shadow-2xl"></div>
+            <h2 id="resultTitle" class="text-3xl font-black mb-2"></h2>
+            <p id="resultSubtitle" class="text-indigo-200 text-sm mb-6"></p>
+            <div class="bg-indigo-900/50 p-6 rounded-2xl border border-indigo-700 max-w-md mx-auto mb-8 grid grid-cols-2 gap-4">
+                <div class="text-center border-l border-indigo-700/50">
+                    <span class="text-xs text-indigo-300 block mb-1">النتيجة النهائية</span>
+                    <span id="finalScore" class="text-3xl font-black text-amber-400">0 / 0</span>
+                </div>
+                <div class="text-center">
+                    <span class="text-xs text-indigo-300 block mb-1">النسبة المئوية</span>
+                    <span id="finalPercentage" class="text-3xl font-black text-emerald-400">0%</span>
+                </div>
+            </div>
+            <div id="teacherNote" class="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl max-w-xl mx-auto mb-8 text-amber-200 text-sm font-semibold"></div>
+            <div class="flex flex-wrap justify-center gap-3">
+                <button onclick="restartLesson()" class="px-6 py-3 bg-amber-500 hover:bg-amber-400 text-indigo-950 font-black rounded-xl text-base transition shadow-lg">
+                    <i class="fa-solid fa-rotate-right ml-2"></i> إعادة الاختبار
+                </button>
+                <button onclick="goToLessons()" class="px-6 py-3 bg-indigo-800 hover:bg-indigo-700 text-amber-300 font-black rounded-xl text-base transition shadow-lg border border-amber-500/30">
+                    <i class="fa-solid fa-arrow-right ml-2"></i> العودة للدروس
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer class="w-full max-w-5xl mx-auto text-center py-4 mt-4 text-xs text-indigo-300/60 border-t border-indigo-900/50 relative z-10">
+        جميع الحقوق محفوظة © صفحة الأستاذ <span class="text-amber-400/80 font-bold">عبده حاتم</span> للنحو والأدب
+    </footer>
+
+    <!-- ============ الأصوات ============ -->
+    <script>
+        let soundEnabled = true;
+        let audioCtx = null;
+        function getAudioCtx() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            return audioCtx;
+        }
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                const ctx = getAudioCtx();
+                if (type === 'correct') {
+                    const now = ctx.currentTime;
+                    [523.25, 659.25, 783.99].forEach((freq, i) => {
+                        const o = ctx.createOscillator(), g = ctx.createGain();
+                        o.connect(g); g.connect(ctx.destination);
+                        o.type = 'sine'; o.frequency.value = freq;
+                        g.gain.setValueAtTime(0.001, now + i * 0.08);
+                        g.gain.exponentialRampToValueAtTime(0.2, now + i * 0.08 + 0.02);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.3);
+                        o.start(now + i * 0.08); o.stop(now + i * 0.08 + 0.35);
+                    });
+                } else if (type === 'wrong') {
+                    const now = ctx.currentTime;
+                    [{f:349.23,t:0},{f:311.13,t:0.18},{f:261.63,t:0.36}].forEach(n => {
+                        const o = ctx.createOscillator(), g = ctx.createGain();
+                        o.connect(g); g.connect(ctx.destination);
+                        o.type = 'triangle'; o.frequency.value = n.f;
+                        g.gain.setValueAtTime(0.001, now + n.t);
+                        g.gain.exponentialRampToValueAtTime(0.18, now + n.t + 0.03);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + n.t + 0.4);
+                        o.start(now + n.t); o.stop(now + n.t + 0.45);
+                    });
+                    const o2 = ctx.createOscillator(), g2 = ctx.createGain();
+                    o2.connect(g2); g2.connect(ctx.destination);
+                    o2.type = 'sine';
+                    o2.frequency.setValueAtTime(174.61, now);
+                    o2.frequency.exponentialRampToValueAtTime(130.81, now + 0.6);
+                    g2.gain.setValueAtTime(0.12, now);
+                    g2.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+                    o2.start(now); o2.stop(now + 0.75);
+                } else if (type === 'click') {
+                    const o = ctx.createOscillator(), g = ctx.createGain();
+                    o.connect(g); g.connect(ctx.destination);
+                    o.type = 'triangle'; o.frequency.setValueAtTime(500, ctx.currentTime);
+                    g.gain.setValueAtTime(0.06, ctx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+                    o.start(); o.stop(ctx.currentTime + 0.06);
+                } else if (type === 'win') {
+                    const now = ctx.currentTime;
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                        const o = ctx.createOscillator(), g = ctx.createGain();
+                        o.connect(g); g.connect(ctx.destination);
+                        o.type = 'sine'; o.frequency.value = freq;
+                        g.gain.setValueAtTime(0.001, now + i * 0.13);
+                        g.gain.exponentialRampToValueAtTime(0.2, now + i * 0.13 + 0.02);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.13 + 0.5);
+                        o.start(now + i * 0.13); o.stop(now + i * 0.13 + 0.55);
+                    });
+                } else if (type === 'sad') {
+                    const now = ctx.currentTime;
+                    [{f:392,t:0},{f:349.23,t:0.25},{f:311.13,t:0.5},{f:261.63,t:0.75}].forEach(n => {
+                        const o = ctx.createOscillator(), g = ctx.createGain();
+                        o.connect(g); g.connect(ctx.destination);
+                        o.type = 'sine'; o.frequency.value = n.f;
+                        g.gain.setValueAtTime(0.001, now + n.t);
+                        g.gain.exponentialRampToValueAtTime(0.18, now + n.t + 0.03);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + n.t + 0.5);
+                        o.start(now + n.t); o.stop(now + n.t + 0.55);
+                    });
+                }
+            } catch(e) { console.warn(e); }
+        }
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundIcon').className = soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+        }
+    </script>
+
+    <!-- ============ تحميل الدروس ديناميكياً ============ -->
+    <script src="lessons.js"></script>
+    <script>
+        let currentLessonIndex = 0;
+        let activeQuestions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let totalQuestions = 0;
+        let currentMatchingSelectedKey = null;
+        let matchingPairsState = [];
+        let matchingCompleted = false;
+        let matchingCorrectCount = 0;
+        let questionAnswered = false;
+
+        const LESSON_STYLES = [
+            { icon: 'fa-book', bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/60', from: 'from-amber-900/60', badge: 'bg-amber-500 text-indigo-950' },
+            { icon: 'fa-pen-nib', bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/60', from: 'from-emerald-900/60', badge: 'bg-emerald-500 text-indigo-950' },
+            { icon: 'fa-masks-theater', bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/60', from: 'from-purple-900/60', badge: 'bg-purple-500 text-white' },
+            { icon: 'fa-scroll', bg: 'bg-sky-500/20', text: 'text-sky-400', border: 'border-sky-500/60', from: 'from-sky-900/60', badge: 'bg-sky-500 text-white' },
+            { icon: 'fa-feather-pointed', bg: 'bg-rose-500/20', text: 'text-rose-400', border: 'border-rose-500/60', from: 'from-rose-900/60', badge: 'bg-rose-500 text-white' }
+        ];
+
+        function renderLessonsGrid() {
+            const grid = document.getElementById('lessonsGrid');
+            grid.innerHTML = '';
+            window.LESSONS_REGISTRY.forEach((lesson, idx) => {
+                const s = LESSON_STYLES[idx % LESSON_STYLES.length];
+                const btn = document.createElement('button');
+                btn.className = `group bg-gradient-to-br from-indigo-900/80 to-indigo-950/80 hover:${s.from} hover:to-indigo-950 p-6 rounded-2xl border-2 border-indigo-700/60 hover:${s.border} transition-all duration-300 shadow-xl hover:scale-105`;
+                btn.onclick = () => startLesson(idx);
+                btn.innerHTML = `
+                    <div class="w-16 h-16 mx-auto mb-4 ${s.bg} rounded-2xl flex items-center justify-center ${s.text} text-3xl border ${s.border} transition">
+                        <i class="fa-solid ${s.icon}"></i>
+                    </div>
+                    <h3 class="text-lg font-black ${s.text} mb-2">${lesson.title}</h3>
+                    <p class="text-indigo-300 text-xs leading-relaxed">${lesson.description}</p>
+                    <span class="inline-block mt-4 px-4 py-1.5 ${s.badge} text-xs font-black rounded-lg">ابدأ الاختبار</span>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        function showLessons() {
+            playSound('click');
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('lessonsScreen').classList.remove('hidden');
+            document.getElementById('scorePanel').classList.add('hidden');
+            document.getElementById('scorePanel').classList.remove('flex');
+            renderLessonsGrid();
+        }
+
+        function goToLessons() {
+            playSound('click');
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('lessonsScreen').classList.remove('hidden');
+            document.getElementById('scorePanel').classList.add('hidden');
+            document.getElementById('scorePanel').classList.remove('flex');
+        }
+
+        function startLesson(idx) {
+            playSound('click');
+            currentLessonIndex = idx;
+            activeQuestions = window.LESSONS_REGISTRY[idx].questions || [];
+            totalQuestions = activeQuestions.length;
+            if (totalQuestions === 0) {
+                alert('لم يتم تحميل أسئلة هذا الدرس، تحقق من وحدة التحكم (F12).');
+                return;
+            }
+            currentQuestionIndex = 0;
+            score = 0;
+            questionAnswered = false;
+            updateScoreDisplay();
+            updateProgressDisplay();
+            document.getElementById('lessonsScreen').classList.add('hidden');
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('scorePanel').classList.remove('hidden');
+            document.getElementById('scorePanel').classList.add('flex');
+            loadQuestion();
+        }
+
+        function restartLesson() { startLesson(currentLessonIndex); }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= totalQuestions) { showResult(); return; }
+            questionAnswered = false;
+            const q = activeQuestions[currentQuestionIndex];
+            document.getElementById('progressBar').style.width = (currentQuestionIndex / totalQuestions) * 100 + '%';
+            document.getElementById('questionTypeBadge').textContent = q.category;
+            document.getElementById('questionNumberText').textContent = 'السؤال ' + (currentQuestionIndex + 1) + ' من ' + totalQuestions;
+            document.getElementById('questionText').textContent = q.question;
+            document.getElementById('feedbackBox').classList.add('hidden');
+            const ac = document.getElementById('answersContainer');
+            const mc = document.getElementById('matchingContainer');
+            if (q.type === 'matching') {
+                ac.classList.add('hidden'); mc.classList.remove('hidden'); renderMatchingQuestion(q);
+            } else {
+                ac.classList.remove('hidden'); mc.classList.add('hidden'); renderMultipleChoiceQuestion(q);
+            }
+        }
+
+        function renderMultipleChoiceQuestion(q) {
+            const c = document.getElementById('answersContainer');
+            c.innerHTML = '';
+            q.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-right px-5 py-3 bg-indigo-900/60 hover:bg-indigo-800/80 border border-indigo-700/60 rounded-xl text-slate-200 font-semibold text-base transition flex items-center space-x-3 space-x-reverse';
+                btn.innerHTML = `<span class="w-7 h-7 flex-shrink-0 flex items-center justify-center bg-indigo-950 rounded-full border border-indigo-600 text-amber-400 font-bold text-sm">${i+1}</span><span>${opt}</span>`;
+                btn.onclick = () => handleAnswer(i);
+                c.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(sel) {
+            if (questionAnswered) return;
+            questionAnswered = true;
+            const q = activeQuestions[currentQuestionIndex];
+            const isCorrect = (sel === q.correct);
+            document.querySelectorAll('#answersContainer button').forEach((b, i) => {
+                b.classList.add('option-disabled');
+                if (i === q.correct) b.classList.add('correct-card');
+                else if (i === sel && !isCorrect) b.classList.add('wrong-card');
+            });
+            if (isCorrect) { score++; updateScoreDisplay(); playSound('correct'); }
+            else playSound('wrong');
+            showFeedback(isCorrect, q.explanation);
+        }
+
+        function renderMatchingQuestion(q) {
+            const kc = document.getElementById('matchingKeys'), vc = document.getElementById('matchingValues');
+            kc.innerHTML = ''; vc.innerHTML = '';
+            currentMatchingSelectedKey = null; matchingCompleted = false; matchingCorrectCount = 0;
+            matchingPairsState = q.pairs.map((p, i) => ({ key: p.key, value: p.value, keyIndex: i, pairedValueIndex: null, paired: false }));
+            const shuffled = [...q.pairs].map((p, i) => ({ text: p.value, originalIndex: i }));
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            q.pairs.forEach((pair, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-right px-4 py-2.5 bg-indigo-900/60 border border-indigo-700/60 rounded-xl text-slate-200 font-semibold text-sm transition matching-key-btn';
+                btn.dataset.keyIndex = i;
+                btn.textContent = pair.key;
+                btn.onclick = () => selectMatchingKey(i, btn);
+                kc.appendChild(btn);
+            });
+            shuffled.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-right px-4 py-2.5 bg-indigo-950/80 border border-indigo-700/60 rounded-xl text-slate-300 font-semibold text-sm transition matching-value-btn';
+                btn.dataset.valueIndex = item.originalIndex;
+                btn.textContent = item.text;
+                btn.onclick = () => selectMatchingValue(item.originalIndex, btn);
+                vc.appendChild(btn);
+            });
+        }
+
+        function selectMatchingKey(k, btn) {
+            if (matchingCompleted) return;
+            if (matchingPairsState[k].paired) return;
+            document.querySelectorAll('.matching-key-btn').forEach(b => b.classList.remove('match-selected'));
+            currentMatchingSelectedKey = k;
+            btn.classList.add('match-selected');
+            playSound('click');
+        }
+
+        function selectMatchingValue(v, valBtn) {
+            if (matchingCompleted || currentMatchingSelectedKey === null) return;
+            const st = matchingPairsState[currentMatchingSelectedKey];
+            if (st.paired) return;
+            if (matchingPairsState.some(s => s.pairedValueIndex === v)) return;
+            const q = activeQuestions[currentQuestionIndex];
+            const correct = q.correct[currentMatchingSelectedKey];
+            const isCorrect = (v === correct);
+            st.pairedValueIndex = v; st.paired = true;
+            if (isCorrect) { matchingCorrectCount++; playSound('correct'); } else playSound('wrong');
+            const keyBtn = document.querySelector(`.matching-key-btn[data-key-index="${currentMatchingSelectedKey}"]`);
+            if (keyBtn) {
+                keyBtn.classList.remove('match-selected'); keyBtn.classList.add('match-paired');
+                keyBtn.style.borderColor = isCorrect ? '#10b981' : '#ef4444';
+            }
+            valBtn.classList.add('match-paired');
+            valBtn.style.borderColor = isCorrect ? '#10b981' : '#ef4444';
+            currentMatchingSelectedKey = null;
+            if (matchingCorrectCount === q.pairs.length) {
+                matchingCompleted = true; questionAnswered = true;
+                score++; updateScoreDisplay();
+                showFeedback(true, q.explanation);
+            } else if (matchingPairsState.every(s => s.paired)) {
+                matchingCompleted = true; questionAnswered = true;
+                showFeedback(false, q.explanation);
+            }
+        }
+
+        function showFeedback(ok, expl) {
+            const fb = document.getElementById('feedbackBox');
+            const hd = document.getElementById('feedbackHeader');
+            const tx = document.getElementById('feedbackText');
+            fb.classList.remove('hidden');
+            if (ok) {
+                fb.className = 'p-4 rounded-2xl mb-4 border text-right transition duration-300 bg-emerald-900/40 border-emerald-500/50 glow-box-neon';
+                hd.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400 text-xl"></i><span class="text-emerald-300">إجابة صحيحة! أحسنت</span>';
+            } else {
+                fb.className = 'p-4 rounded-2xl mb-4 border text-right transition duration-300 bg-rose-900/40 border-rose-500/50';
+                hd.innerHTML = '<i class="fa-solid fa-circle-xmark text-rose-400 text-xl"></i><span class="text-rose-300">إجابة خاطئة، تعلم من التوضيح</span>';
+            }
+            tx.textContent = expl;
+            fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            updateProgressDisplay();
+            if (currentQuestionIndex >= totalQuestions) showResult();
+            else loadQuestion();
+        }
+
+        function updateScoreDisplay() { document.getElementById('scoreDisplay').textContent = score; }
+        function updateProgressDisplay() { document.getElementById('progressDisplay').textContent = currentQuestionIndex + '/' + totalQuestions; }
+
+        function showResult() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+            const pct = Math.round((score / totalQuestions) * 100);
+            document.getElementById('finalScore').textContent = score + ' / ' + totalQuestions;
+            document.getElementById('finalPercentage').textContent = pct + '%';
+            const badge = document.getElementById('resultBadge');
+            const title = document.getElementById('resultTitle');
+            const sub = document.getElementById('resultSubtitle');
+            const note = document.getElementById('teacherNote');
+            if (pct >= 90) {
+                badge.className = 'w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl mb-6 shadow-2xl bg-gradient-to-tr from-amber-500 to-yellow-300 text-indigo-950';
+                badge.innerHTML = '<i class="fa-solid fa-trophy"></i>';
+                title.textContent = 'مبدع! نتيجة استثنائية';
+                title.className = 'text-3xl font-black mb-2 text-amber-300';
+                sub.textContent = 'أداء رائع! لقد أتقنت الدرس إتقاناً تاماً.';
+                note.innerHTML = '<i class="fa-solid fa-award ml-1"></i> مبارك هذا التميز! واصل التفوق. - الأستاذ عبده حاتم';
+                playSound('win'); confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            } else if (pct >= 75) {
+                badge.className = 'w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl mb-6 shadow-2xl bg-gradient-to-tr from-emerald-500 to-teal-300 text-indigo-950';
+                badge.innerHTML = '<i class="fa-solid fa-medal"></i>';
+                title.textContent = 'ممتاز جداً!';
+                title.className = 'text-3xl font-black mb-2 text-emerald-300';
+                sub.textContent = 'مستوى متقدم! أنت قريب من الإتقان الكامل.';
+                note.innerHTML = '<i class="fa-solid fa-thumbs-up ml-1"></i> نتيجة مشرفة! راجع بعض المفاهيم للوصول للعلامة الكاملة. - الأستاذ عبده حاتم';
+                playSound('win'); confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            } else if (pct >= 50) {
+                badge.className = 'w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl mb-6 shadow-2xl bg-gradient-to-tr from-indigo-500 to-blue-300 text-white';
+                badge.innerHTML = '<i class="fa-solid fa-star"></i>';
+                title.textContent = 'جيد، واصل التدريب!';
+                title.className = 'text-3xl font-black mb-2 text-indigo-300';
+                sub.textContent = 'أساس جيد، لكن تحتاج مراجعة بعض الأجزاء.';
+                note.innerHTML = '<i class="fa-solid fa-book-open ml-1"></i> راجع الأمثلة وأعد الاختبار. - الأستاذ عبده حاتم';
+            } else {
+                badge.className = 'w-28 h-28 mx-auto rounded-full flex items-center justify-center text-5xl mb-6 shadow-2xl bg-gradient-to-tr from-rose-600 to-pink-400 text-white';
+                badge.innerHTML = '<i class="fa-solid fa-heart"></i>';
+                title.textContent = 'لا تستسلم!';
+                title.className = 'text-3xl font-black mb-2 text-rose-300';
+                sub.textContent = 'البداية صعبة، لكنك قادر على النجاح بالمراجعة.';
+                note.innerHTML = '<i class="fa-solid fa-hand-holding-heart ml-1"></i> ادرس القواعد ثم أعد التحدي. أنا واثق بك. - الأستاذ عبده حاتم';
+                playSound('sad');
+            }
+            document.getElementById('progressBar').style.width = '100%';
+        }
+    </script>
+</body>
+  </html>
