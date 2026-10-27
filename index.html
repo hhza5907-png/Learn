@@ -231,7 +231,6 @@
     <!-- ============ تحميل الدروس ديناميكياً ============ -->
     <script src="lessons.js"></script>
     <script>
-        // ==== متغيرات عامة ====
         let currentLessonIndex = 0;
         let activeQuestions = [];
         let currentQuestionIndex = 0;
@@ -243,13 +242,12 @@
         let matchingCorrectCount = 0;
         let questionAnswered = false;
 
-        // ==== أيقونات وألوان افتراضية للدروس ====
         const LESSON_STYLES = [
-            { icon: 'fa-book', color: 'amber', from: 'from-amber-900/60', border: 'border-amber-500/60', bg: 'bg-amber-500/20', text: 'text-amber-400', badge: 'bg-amber-500 text-indigo-950' },
-            { icon: 'fa-pen-nib', color: 'emerald', from: 'from-emerald-900/60', border: 'border-emerald-500/60', bg: 'bg-emerald-500/20', text: 'text-emerald-400', badge: 'bg-emerald-500 text-indigo-950' },
-            { icon: 'fa-masks-theater', color: 'purple', from: 'from-purple-900/60', border: 'border-purple-500/60', bg: 'bg-purple-500/20', text: 'text-purple-400', badge: 'bg-purple-500 text-white' },
-            { icon: 'fa-scroll', color: 'sky', from: 'from-sky-900/60', border: 'border-sky-500/60', bg: 'bg-sky-500/20', text: 'text-sky-400', badge: 'bg-sky-500 text-white' },
-            { icon: 'fa-feather-pointed', color: 'rose', from: 'from-rose-900/60', border: 'border-rose-500/60', bg: 'bg-rose-500/20', text: 'text-rose-400', badge: 'bg-rose-500 text-white' }
+            { icon: 'fa-book', bg: 'bg-amber-500/20', text: 'text-amber-400', border: 'border-amber-500/60', from: 'from-amber-900/60', badge: 'bg-amber-500 text-indigo-950' },
+            { icon: 'fa-pen-nib', bg: 'bg-emerald-500/20', text: 'text-emerald-400', border: 'border-emerald-500/60', from: 'from-emerald-900/60', badge: 'bg-emerald-500 text-indigo-950' },
+            { icon: 'fa-masks-theater', bg: 'bg-purple-500/20', text: 'text-purple-400', border: 'border-purple-500/60', from: 'from-purple-900/60', badge: 'bg-purple-500 text-white' },
+            { icon: 'fa-scroll', bg: 'bg-sky-500/20', text: 'text-sky-400', border: 'border-sky-500/60', from: 'from-sky-900/60', badge: 'bg-sky-500 text-white' },
+            { icon: 'fa-feather-pointed', bg: 'bg-rose-500/20', text: 'text-rose-400', border: 'border-rose-500/60', from: 'from-rose-900/60', badge: 'bg-rose-500 text-white' }
         ];
 
         function renderLessonsGrid() {
@@ -294,8 +292,12 @@
         function startLesson(idx) {
             playSound('click');
             currentLessonIndex = idx;
-            activeQuestions = window.LESSONS_REGISTRY[idx].questions;
+            activeQuestions = window.LESSONS_REGISTRY[idx].questions || [];
             totalQuestions = activeQuestions.length;
+            if (totalQuestions === 0) {
+                alert('لم يتم تحميل أسئلة هذا الدرس، تحقق من وحدة التحكم (F12).');
+                return;
+            }
             currentQuestionIndex = 0;
             score = 0;
             questionAnswered = false;
